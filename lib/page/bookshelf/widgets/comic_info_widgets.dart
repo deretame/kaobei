@@ -35,10 +35,11 @@ List<List<ComicBaseInfo>> generateElements(List<ComicBaseInfo> comicList) {
   return elementsRows;
 }
 
-Widget elementInfoRow(List<ComicBaseInfo> elementsRows,
-    BuildContext context, {
-      ComicReadType comicReadType = ComicReadType.none,
-    }) {
+Widget elementInfoRow(
+  List<ComicBaseInfo> elementsRows,
+  BuildContext context, {
+  ComicReadType comicReadType = ComicReadType.none,
+}) {
   return Row(
     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,10 +83,10 @@ class _ElementInfoWidgetState extends State<ElementInfoWidget> {
   Future<void> callBack() async {
     if (comicReadType == ComicReadType.favorite) {
       var collectedComic =
-      objectbox.collectBox
-          .query(CollectComic_.pathWord.equals(comicBaseInfo.pathWord))
-          .build()
-          .findFirst();
+          objectbox.collectBox
+              .query(CollectComic_.pathWord.equals(comicBaseInfo.pathWord))
+              .build()
+              .findFirst();
       if (collectedComic != null) {
         collectedComic.deleted = true;
         collectedComic.deleteTime = DateTime.now().toUtc();
@@ -101,10 +102,10 @@ class _ElementInfoWidgetState extends State<ElementInfoWidget> {
 
     if (comicReadType == ComicReadType.history) {
       var comicHistory =
-      objectbox.historyBox
-          .query(ComicHistory_.pathWord.equals(comicBaseInfo.pathWord))
-          .build()
-          .findFirst();
+          objectbox.historyBox
+              .query(ComicHistory_.pathWord.equals(comicBaseInfo.pathWord))
+              .build()
+              .findFirst();
       if (comicHistory != null) {
         comicHistory.deleted = true;
         comicHistory.deleteTime = DateTime.now().toUtc();
@@ -120,10 +121,10 @@ class _ElementInfoWidgetState extends State<ElementInfoWidget> {
 
     if (comicReadType == ComicReadType.download) {
       var comicDownload =
-      objectbox.downloadBox
-          .query(ComicDownload_.pathWord.equals(comicBaseInfo.pathWord))
-          .build()
-          .findFirst();
+          objectbox.downloadBox
+              .query(ComicDownload_.pathWord.equals(comicBaseInfo.pathWord))
+              .build()
+              .findFirst();
       if (comicDownload != null) {
         objectbox.downloadBox.remove(comicDownload.id);
       }
@@ -232,9 +233,11 @@ class _ElementInfoWidgetState extends State<ElementInfoWidget> {
   }
 }
 
-Future<bool> showConfirmationDialog(String title,
-    String message,
-    BuildContext context,) async {
+Future<bool> showConfirmationDialog(
+  String title,
+  String message,
+  BuildContext context,
+) async {
   return await showDialog<bool>(
     context: context,
     barrierDismissible: true, // 允许点击外部关闭

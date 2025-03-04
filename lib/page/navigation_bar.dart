@@ -1,10 +1,14 @@
 import 'package:auto_route/annotations.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:toastification/toastification.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../main.dart';
+import '../util/github/check_update.dart';
 import '../util/toast.dart';
 import 'bookshelf/bookshelf.dart';
 import 'comic/comic.dart';
@@ -36,6 +40,7 @@ class _NavigationBarPageState extends State<NavigationBarPage> {
   @override
   void initState() {
     super.initState();
+    _checkUpdate();
     _pageList = [
       BookShelf(
         collectScrollController: _bookShelfCollectController,
@@ -188,5 +193,62 @@ class _NavigationBarPageState extends State<NavigationBarPage> {
       style: ToastificationStyle.flatColored,
       autoCloseDuration: event.duration,
     );
+  }
+
+  Future<void> _checkUpdate() async {
+    final temp = await getCloudVersion();
+    final cloudVersion = temp.tagName;
+    final releaseInfo = temp.body;
+    final String localVersion = await getAppVersion();
+
+    if (isUpdateAvailable(cloudVersion, localVersion)) {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('发现新版本'),
+            content: SingleChildScrollView(
+              child: SizedBox(
+                width: double.maxFinite, // 设置最大宽度
+                child: MarkdownBody(data: '# $cloudVersion\n$releaseInfo'),
+              ),
+            ),
+            actions: [
+              TextButton(
+                child: Text('取消'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: Text('前往GitHub'),
+                onPressed: () {
+                  launchUrl(
+                    Uri.parse(
+                      'https://github.com/deretame/kaobei/releases/tag/$cloudVersion',
+                    ),
+                  );
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: Text('下载安装'),
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  for (var apkUrl in temp.assets) {
+                    if (apkUrl.browserDownloadUrl.contains(
+                      "app-arm64-v8a-release.apk",
+                    )) {
+                      await installApk(apkUrl.browserDownloadUrl);
+                    }
+                  }
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 }
