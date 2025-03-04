@@ -1,0 +1,192 @@
+import 'package:auto_route/annotations.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
+import 'package:toastification/toastification.dart';
+
+import '../main.dart';
+import '../util/toast.dart';
+import 'bookshelf/bookshelf.dart';
+import 'comic/comic.dart';
+import 'more/view/more_page.dart';
+
+@RoutePage()
+class NavigationBarPage extends StatefulWidget {
+  const NavigationBarPage({super.key});
+
+  @override
+  State<NavigationBarPage> createState() => _NavigationBarPageState();
+}
+
+class _NavigationBarPageState extends State<NavigationBarPage> {
+  // OverlayEntry 用于管理遮罩层
+  OverlayEntry? _overlayEntry;
+  final ScrollController _bookShelfCollectController = ScrollController();
+  final ScrollController _bookShelfHistoryController = ScrollController();
+  final ScrollController _bookShelfDownloadController = ScrollController();
+
+  // PersistentTabController 用于控制底部导航栏
+  final PersistentTabController _controller = PersistentTabController(
+    initialIndex: 0,
+  );
+
+  // 页面列表
+  late final List<Widget> _pageList;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageList = [
+      BookShelf(
+        collectScrollController: _bookShelfCollectController,
+        historyScrollController: _bookShelfHistoryController,
+        downloadScrollController: _bookShelfDownloadController,
+      ),
+      ComicPage(),
+      MorePage(),
+    ];
+    eventBus.on<ToastEvent>().listen((event) {
+      _showToast(event);
+    });
+
+    // 添加遮罩层
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _addOverlay();
+    });
+  }
+
+  @override
+  void dispose() {
+    _removeOverlay(); // 移除遮罩层
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Observer(
+      builder: (context) {
+        return PersistentTabView(
+          context,
+          controller: _controller,
+          // 页面列表
+          screens: _pageList,
+          // 导航栏项
+          items: _navBarItems(),
+          // 导航栏背景颜色
+          backgroundColor: setting.backgroundColor,
+          // 处理 Android 返回按钮
+          handleAndroidBackButtonPress: true,
+          // 调整布局以避免键盘遮挡
+          resizeToAvoidBottomInset: false,
+          // 避免在键盘弹出时隐藏导航栏
+          hideNavigationBarWhenKeyboardAppears: false,
+          // 保持页面状态
+          stateManagement: true,
+          // decoration: NavBarDecoration(
+          //   // borderRadius: BorderRadius.circular(10.0), // 导航栏圆角
+          //   colorBehindNavBar: globalSetting.backgroundColor, // 导航栏后面的颜色
+          // ),
+          hideOnScrollSettings: HideOnScrollSettings(
+            hideNavBarOnScroll: true,
+            scrollControllers: [
+              _bookShelfCollectController,
+              _bookShelfHistoryController,
+              _bookShelfDownloadController,
+            ],
+          ),
+          navBarStyle: NavBarStyle.style3, // 导航栏样式
+        );
+      },
+    );
+  }
+
+  // 底部导航栏的配置项
+  List<PersistentBottomNavBarItem> _navBarItems() {
+    return [
+      PersistentBottomNavBarItem(
+        icon: Icon(Icons.menu_book_sharp),
+        title: "书架",
+        activeColorPrimary: materialColorScheme.primary,
+        inactiveColorPrimary: setting.textColor,
+      ),
+      PersistentBottomNavBarItem(
+        icon: Icon(Icons.collections_bookmark_rounded),
+        title: "漫画",
+        activeColorPrimary: materialColorScheme.primary,
+        inactiveColorPrimary: setting.textColor,
+      ),
+      // PersistentBottomNavBarItem(
+      //   icon: SvgPicture.asset('assets/svg/novel.svg'),
+      //   title: "小说",
+      //   activeColorPrimary: materialColorScheme.primary,
+      //   inactiveColorPrimary: setting.textColor,
+      // ),
+      PersistentBottomNavBarItem(
+        icon: Icon(Icons.more_horiz),
+        title: "更多",
+        activeColorPrimary: materialColorScheme.primary,
+        inactiveColorPrimary: setting.textColor,
+      ),
+    ];
+  }
+
+  // 添加遮罩层
+  void _addOverlay() {
+    _overlayEntry = OverlayEntry(
+      builder: (context) {
+        return Observer(
+          builder:
+              (context) => Positioned.fill(
+                child: IgnorePointer(
+                  ignoring: true, // 不拦截触控事件
+                  child: Container(
+                    color:
+                        setting.shade
+                            ? setting.isLightTheme
+                                ? Colors.transparent
+                                : Colors.black.withValues(alpha: 0.5)
+                            : Colors.transparent,
+                  ),
+                ),
+              ),
+        );
+      },
+    );
+
+    // 将遮罩层插入到 Overlay 中
+    Overlay.of(context).insert(_overlayEntry!);
+  }
+
+  // 移除遮罩层
+  void _removeOverlay() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+  }
+
+  void _showToast(ToastEvent event) {
+    ToastificationType type;
+    switch (event.type) {
+      case ToastType.success:
+        type = ToastificationType.success;
+        break;
+      case ToastType.error:
+        type = ToastificationType.error;
+        break;
+      case ToastType.warning:
+        type = ToastificationType.warning;
+        break;
+      case ToastType.info:
+        type = ToastificationType.info;
+        break;
+    }
+
+    toastification.show(
+      context: context,
+      title: event.title == null ? null : Text(event.title!),
+      description: Text(event.message),
+      type: type,
+      style: ToastificationStyle.flatColored,
+      autoCloseDuration: event.duration,
+    );
+  }
+}
