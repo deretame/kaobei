@@ -57,7 +57,7 @@ Future<void> main() async {
       // 忽略证书验证
       // HttpOverrides.global = DevHttpOverrides();
       // 重采样触控刷新率
-      GestureBinding.instance.resamplingEnabled = true;
+      GestureBinding.instance.resamplingEnabled = false;
 
       objectbox = await ObjectBox.create();
 
@@ -119,9 +119,9 @@ class _MyAppState extends State<MyApp> {
     setting.setBackgroundColor(materialColorScheme.surfaceBright);
     setting.setTextColor(materialColorScheme.onSurface);
 
-    logger.d(
-      "isDarkMode: $isDarkMode\nThemeMode: ${setting.themeMode}\nThemeType: ${setting.isLightTheme}\nBackgroundColor: ${setting.backgroundColor}\nTextColor: ${setting.textColor}",
-    );
+    // logger.d(
+    //   "isDarkMode: $isDarkMode\nThemeMode: ${setting.themeMode}\nThemeType: ${setting.isLightTheme}\nBackgroundColor: ${setting.backgroundColor}\nTextColor: ${setting.textColor}",
+    // );
   }
 
   @override

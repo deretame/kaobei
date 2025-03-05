@@ -1,6 +1,6 @@
 name: kaobei
 description: "使用flutter编写的三方拷贝漫画"
-version: 1.0.1+2
+version: 1.0.2+3
 
 environment:
   sdk: ^3.7.0-323.0.dev

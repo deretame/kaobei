@@ -8,6 +8,7 @@ import 'package:kaobei/config/config.dart';
 import 'package:kaobei/page/comic_info/comic_info.dart';
 import 'package:kaobei/page/comic_info/json/comic_all_info_json/comic_all_info_json.dart'
     as comic_all_info_json;
+import 'package:uuid/uuid.dart';
 
 import '../../../main.dart';
 import '../../../mobx/string_store.dart';
@@ -60,11 +61,11 @@ class _ComicInfoPageState extends State<_ComicInfoPage> {
   bool showFloatingButton = false;
   bool _isCallbackExecuted = false;
   late String comicInfoJsonStr;
+  String uuid = "";
 
   @override
   void initState() {
     super.initState();
-    logger.d(comicReadType.toString());
     comicHistory =
         objectbox.historyBox
             .query(ComicHistory_.pathWord.equals(comicId))
@@ -79,21 +80,6 @@ class _ComicInfoPageState extends State<_ComicInfoPage> {
       stringStore.setDate(
         "${comicHistory!.chapterName}（${comicHistory!.chapterIndex}）—— ${comicHistory!.lastViewingTime.toString().substring(0, 19)}",
       );
-    }
-
-    if (comicReadType == ComicReadType.download) {
-      var downloadInfo =
-          objectbox.downloadBox
-              .query(ComicDownload_.pathWord.equals(comicId))
-              .build()
-              .findFirst();
-      if (downloadInfo != null) {
-        comicAllInfoJson = comic_all_info_json.comicAllInfoJsonFromJson(
-          downloadInfo.allInfo,
-        );
-        comicInfoJsonStr = downloadInfo.comicBaseInfo;
-      }
-      comicInfo = ComicInfo.fromJson(json.decode(downloadInfo!.comicBaseInfo));
     }
   }
 
@@ -156,8 +142,7 @@ class _ComicInfoPageState extends State<_ComicInfoPage> {
   }
 
   Widget body() {
-    return comicReadType == ComicReadType.download ||
-            comicReadType == ComicReadType.historyAndDownload
+    return comicReadType == ComicReadType.download
         ? _successWidget(null)
         : BlocBuilder<ComicInfoBloc, ComicInfoState>(
           builder: (context, state) {
@@ -200,6 +185,20 @@ class _ComicInfoPageState extends State<_ComicInfoPage> {
   }
 
   Widget _successWidget(ComicInfoState? state) {
+    if (comicReadType == ComicReadType.download) {
+      var downloadInfo =
+          objectbox.downloadBox
+              .query(ComicDownload_.pathWord.equals(comicId))
+              .build()
+              .findFirst();
+      if (downloadInfo != null) {
+        comicAllInfoJson = comic_all_info_json.comicAllInfoJsonFromJson(
+          downloadInfo.allInfo,
+        );
+        comicInfoJsonStr = downloadInfo.comicBaseInfo;
+      }
+      comicInfo = ComicInfo.fromJson(json.decode(downloadInfo!.comicBaseInfo));
+    }
     if (state != null) {
       comicInfo = state.comicInfo;
       comicInfoJsonStr = state.result;
@@ -258,26 +257,40 @@ class _ComicInfoPageState extends State<_ComicInfoPage> {
       _isCallbackExecuted = true;
     }
 
-    return SizedBox(
-      child: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: BaseComicInfo(
-              comicInfo: comicInfo!,
-              stringStore: stringStore,
+    return RefreshIndicator(
+      onRefresh: () async {
+        _onFloatingButtonPressed();
+      },
+      child: SizedBox(
+        key: ValueKey(uuid),
+        child: CustomScrollView(
+          physics: AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverToBoxAdapter(
+              child: BaseComicInfo(
+                comicInfo: comicInfo!,
+                stringStore: stringStore,
+              ),
             ),
-          ),
-          SliverToBoxAdapter(child: SizedBox(height: 10)),
-          SliverToBoxAdapter(
-            child: ComicOperateWidget(
-              comicInfo: comicInfo!,
-              comicInfoJsonStr: comicInfoJsonStr,
+            SliverToBoxAdapter(child: SizedBox(height: 10)),
+            SliverToBoxAdapter(
+              child: ComicOperateWidget(
+                comicInfo: comicInfo!,
+                comicInfoJsonStr: comicInfoJsonStr,
+              ),
             ),
-          ),
-          ...epsWidgets,
-          SliverToBoxAdapter(child: SizedBox(height: screenHeight * (1 / 3))),
-        ],
+            ...epsWidgets,
+            SliverToBoxAdapter(child: SizedBox(height: screenHeight * (1 / 3))),
+          ],
+        ),
       ),
     );
+  }
+
+  void _onFloatingButtonPressed() async {
+    context.read<ComicInfoBloc>().add(
+      ComicInfoEvent(comicId, ComicInfoStatus.initial),
+    );
+    setState(() => uuid = Uuid().v4());
   }
 }

@@ -146,11 +146,9 @@ class _NavigationBarPageState extends State<NavigationBarPage> {
                   ignoring: true, // 不拦截触控事件
                   child: Container(
                     color:
-                        setting.shade
-                            ? setting.isLightTheme
-                                ? Colors.transparent
-                                : Colors.black.withValues(alpha: 0.5)
-                            : Colors.transparent,
+                        setting.shade && setting.isLightTheme
+                            ? Colors.transparent
+                            : Colors.black.withValues(alpha: 0.5),
                   ),
                 ),
               ),

@@ -4,6 +4,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kaobei/page/comic_info/comic_info.dart';
 import 'package:kaobei/page/comic_info/json/comic_all_info_json/comic_all_info_json.dart'
     as comic_all_info_json;
 import 'package:kaobei/page/comic_read/comic_read.dart';
@@ -15,7 +16,6 @@ import '../../../mobx/string_store.dart';
 import '../../../object_box/model.dart';
 import '../../../object_box/objectbox.g.dart';
 import '../../comic_info/json/info/comic_info_json.dart';
-import '../../comic_info/models/comic_info.dart';
 import '../json/comic_read_json.dart';
 
 @RoutePage()
@@ -79,7 +79,9 @@ class __ComicReadPageState extends State<_ComicReadPage> {
 
   StringStore get stringStore => widget.stringStore;
 
-  ComicReadType get comicReadType => widget.comicReadType;
+  bool get isDownload =>
+      widget.comicReadType == ComicReadType.download ||
+      widget.comicReadType == ComicReadType.historyAndDownload;
 
   late String comicId;
   late bool isSkipped = false; // 是否跳转过
@@ -104,11 +106,12 @@ class __ComicReadPageState extends State<_ComicReadPage> {
   List<String> chapterUUIDList = []; // 记录章节uuid列表，只有从下载列表过来才会有
   String title = ""; // 记录标题
   String uuid = ""; // 记录uuid
+  List<String> comicImageUrlList = []; // 记录漫画图片列表
 
   @override
   void initState() {
     super.initState();
-    _type = comicReadType;
+    _type = widget.comicReadType;
     logger.d("type: ${_type.toString()}");
     comicId = comicInfo.results.comic.pathWord;
     _itemScrollController = ItemScrollController();
@@ -129,26 +132,7 @@ class __ComicReadPageState extends State<_ComicReadPage> {
             .findFirst();
 
     if (comicHistory == null) {
-      var result = comicInfo.results;
-      comicHistory = ComicHistory(
-        pathWord: result.comic.pathWord,
-        coverUrl: result.comic.cover,
-        name: result.comic.name,
-        alias: result.comic.alias,
-        region: result.comic.region.display,
-        status: result.comic.status.display,
-        author: result.comic.author.map((e) => e.name).toList().join("|"),
-        theme: result.comic.theme.map((e) => e.name).toList(),
-        description: result.comic.brief,
-        popular: result.popular,
-        lastUpdatedTime: result.comic.datetimeUpdated,
-        deleted: false,
-        deleteTime: DateTime(2000, 1, 1, 0, 0, 0).toUtc(),
-        lastViewingTime: DateTime.now(),
-        chapterId: chapterId,
-        chapterName: '',
-        chapterIndex: 0,
-      );
+      comicHistory = initComicHistory(comicInfo.results.comic);
       objectbox.historyBox.put(comicHistory!);
     } else {
       stringStore.setDate(
@@ -158,8 +142,7 @@ class __ComicReadPageState extends State<_ComicReadPage> {
       );
     }
 
-    if (comicReadType == ComicReadType.download ||
-        comicReadType == ComicReadType.historyAndDownload) {
+    if (isDownload) {
       comicAllInfoJson = comic_all_info_json.comicAllInfoJsonFromJson(
         objectbox.downloadBox
             .query(ComicDownload_.pathWord.equals(comicId))
@@ -180,8 +163,7 @@ class __ComicReadPageState extends State<_ComicReadPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body:
-          comicReadType == ComicReadType.download ||
-                  comicReadType == ComicReadType.historyAndDownload
+          isDownload
               ? _successWidget(null)
               : BlocBuilder<ComicReadBloc, ComicReadState>(
                 builder: (context, state) {
@@ -198,13 +180,6 @@ class __ComicReadPageState extends State<_ComicReadPage> {
                     case ComicReadStatus.failure:
                       return _errorWidget(state);
                     case ComicReadStatus.success:
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        setState(() {
-                          epPages =
-                              state.eps!.results.chapter.words.length
-                                  .toString();
-                        });
-                      });
                       return _successWidget(state);
                   }
                 },
@@ -238,14 +213,115 @@ class __ComicReadPageState extends State<_ComicReadPage> {
   }
 
   Widget _successWidget(ComicReadState? state) {
-    List<String> comicImageUrlList = [];
+    _initData(state);
 
+    return SafeArea(
+      top: false,
+      bottom: false,
+      child: Container(
+        color: Colors.black,
+        child: Stack(
+          children: [
+            _readListWidget(),
+            _comicReadAppBar(),
+            _pageCountWidget(),
+            _bottomWidget(),
+            // _commentWidget(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _readListWidget() {
+    return GestureDetector(
+      onTap:
+          () => setState(() {
+            _isVisible = !_isVisible;
+            if (_isVisible) {
+              SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+            }
+          }),
+      child: InteractiveViewer(
+        boundaryMargin: EdgeInsets.zero,
+        minScale: 1.0,
+        maxScale: 4.0,
+        child: ColumnList(
+          comicImageUrlList: comicImageUrlList,
+          comicId: comicId,
+          uuid: uuid,
+          itemScrollController: _itemScrollController,
+          itemPositionsListener: _itemPositionsListener,
+        ),
+      ),
+    );
+  }
+
+  Widget _comicReadAppBar() {
+    return ComicReadAppBar(
+      title: title,
+      isVisible: _isVisible,
+      onThemeModeChanged: () {
+        setting.setThemeMode(0);
+      },
+    );
+  }
+
+  Widget _pageCountWidget() {
+    return PageCountWidget(pageIndex: pageIndex, epPages: epPages);
+  }
+
+  Widget _bottomWidget() {
+    return BottomWidget(
+      comicReadType: _type,
+      chapter: chapter,
+      chapterUUIDList: chapterUUIDList,
+      comicReadJson: comicReadJson,
+      isVisible: _isVisible,
+      comicInfo: comicInfo,
+      stringStore: stringStore,
+      slider: SliderWidget(
+        totalSlots: _totalSlots,
+        currentSliderValue: _currentSliderValue,
+        changeSliderValue: (double newValue) {
+          setState(() => _currentSliderValue = newValue);
+        },
+        changeSliderRollState: (bool newValue) {
+          setState(() => _isSliderRolling = newValue);
+        },
+        changeComicRollState: (bool newValue) {
+          setState(() => _isComicRolling = newValue);
+        },
+        itemScrollController: _itemScrollController,
+      ),
+    );
+  }
+
+  Widget _commentWidget() {
+    return AnimatedPositioned(
+      duration: const Duration(milliseconds: 400),
+      right: _isVisible ? 20 : -60,
+      bottom: MediaQuery.of(context).size.height / 2 - 28,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 400),
+        opacity: _isVisible ? 1 : 0,
+        child: FloatingActionButton(
+          backgroundColor: materialColorScheme.primaryContainer,
+          elevation: 4,
+          child: Icon(Icons.comment),
+          onPressed: () {},
+        ),
+      ),
+    );
+  }
+
+  void _initData(ComicReadState? state) {
     if (_isVisible == false) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
     }
 
-    if (_type != ComicReadType.download &&
-        _type != ComicReadType.historyAndDownload) {
+    if (!isDownload) {
+      comicImageUrlList = [];
       comicReadJson = state!.eps!;
       for (var i in comicReadJson!.results.chapter.contents) {
         comicImageUrlList.add(i.url);
@@ -253,7 +329,11 @@ class __ComicReadPageState extends State<_ComicReadPage> {
       comicImageUrlList.sort();
       title = comicReadJson!.results.chapter.name;
       uuid = comicReadJson!.results.chapter.uuid;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() => epPages = comicImageUrlList.length.toString());
+      });
     } else {
+      comicImageUrlList = [];
       for (var group in comicAllInfoJson.groups) {
         for (var chapterList in group.chapterList) {
           chapterUUIDList.add(chapterList.chapterInfo.chapter.uuid);
@@ -272,9 +352,6 @@ class __ComicReadPageState extends State<_ComicReadPage> {
 
     _totalSlots = comicImageUrlList.length;
 
-    // logger.d("sortedValues: ${sortedValues.length}");
-
-    // 处理滚动到历史记录
     if ((_type == ComicReadType.history ||
             _type == ComicReadType.historyAndDownload) &&
         (comicHistory!.chapterIndex != 0) &&
@@ -288,105 +365,6 @@ class __ComicReadPageState extends State<_ComicReadPage> {
       });
     }
     isSkipped = true;
-
-    return SafeArea(
-      top: false,
-      bottom: false,
-      child: Container(
-        color: Colors.black,
-        child: Stack(
-          children: [
-            GestureDetector(
-              onTap:
-                  () => setState(() {
-                    _isVisible = !_isVisible;
-                    if (_isVisible) {
-                      SystemChrome.setEnabledSystemUIMode(
-                        SystemUiMode.edgeToEdge,
-                      );
-                    }
-                  }),
-              child: InteractiveViewer(
-                boundaryMargin: EdgeInsets.zero,
-                minScale: 1.0,
-                maxScale: 4.0,
-                child: ScrollablePositionedList.builder(
-                  itemCount: comicImageUrlList.length + 2,
-                  itemBuilder: (context, index) {
-                    if (index == 0) {
-                      return Container(
-                        width: screenWidth,
-                        height: statusBarHeight,
-                        color: Color(0xFF2D2D2D),
-                      );
-                    } else if (index == comicImageUrlList.length + 1) {
-                      return Container(
-                        height: 75,
-                        width: screenWidth,
-                        alignment: Alignment.center,
-                        color: Color(0xFF2D2D2D),
-                        child: RichText(
-                          text: TextSpan(
-                            text: "章节结束",
-                            style: TextStyle(
-                              fontSize: 20,
-                              color: Color(0xFFCCCCCC),
-                            ),
-                          ),
-                        ),
-                      );
-                    }
-
-                    return Container(
-                      color: Colors.black,
-                      child: ImageWidget(
-                        url: comicImageUrlList[index - 1],
-                        cartoonId: comicId,
-                        chapterId: uuid,
-                        index: index,
-                      ),
-                    );
-                  },
-                  itemScrollController: _itemScrollController,
-                  itemPositionsListener: _itemPositionsListener,
-                ),
-              ),
-            ),
-            ComicReadAppBar(
-              title: title,
-              isVisible: _isVisible,
-              onThemeModeChanged: () {
-                setting.setThemeMode(0);
-              },
-            ),
-            PageCountWidget(pageIndex: pageIndex, epPages: epPages),
-            BottomWidget(
-              comicReadType: _type,
-              chapter: chapter,
-              chapterUUIDList: chapterUUIDList,
-              comicReadJson: comicReadJson,
-              isVisible: _isVisible,
-              comicInfo: comicInfo,
-              stringStore: stringStore,
-              slider: SliderWidget(
-                totalSlots: _totalSlots,
-                currentSliderValue: _currentSliderValue,
-                changeSliderValue: (double newValue) {
-                  setState(() => _currentSliderValue = newValue);
-                },
-                changeSliderRollState: (bool newValue) {
-                  setState(() => _isSliderRolling = newValue);
-                },
-                changeComicRollState: (bool newValue) {
-                  setState(() => _isComicRolling = newValue);
-                },
-                itemScrollController: _itemScrollController,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   Future<void> getTopThirdItemIndex(Iterable<ItemPosition> positions) async {

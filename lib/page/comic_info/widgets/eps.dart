@@ -357,6 +357,11 @@ class _EpsWidgetState extends State<_EpsWidget>
 
     if (element.name == '') return SizedBox(width: width + 4);
 
+    ComicReadType type = widget.comicReadType;
+    if (type != ComicReadType.download) {
+      type = ComicReadType.none;
+    }
+
     return GestureDetector(
       onTap: () {
         AutoRouter.of(context).push(
@@ -364,7 +369,7 @@ class _EpsWidgetState extends State<_EpsWidget>
             comicInfo: comicInfo,
             chapterId: element.uuid,
             stringStore: stringStore,
-            comicReadType: comicReadType,
+            comicReadType: type,
           ),
         );
       },
