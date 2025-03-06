@@ -268,7 +268,7 @@ Future<Map<String, dynamic>> comicTagAuthorSearch({
   );
 }
 
-Future<Map<String, dynamic>> getComicComments({
+Future<Map<String, dynamic>> getChapterComments({
   String chapterId = '',
   int offset = 0,
 }) async {
@@ -293,6 +293,47 @@ Future<Map<String, dynamic>> getComicComments({
 
   var params = {
     "chapter_id": chapterId,
+    "limit": 10,
+    "offset": offset,
+    "platform": 3,
+  };
+
+  return await httpBuild(
+    url: url,
+    method: "GET",
+    headers: headers,
+    params: params,
+    cache: false,
+  );
+}
+
+Future<Map<String, dynamic>> getComicComments({
+  String comicId = '',
+  String replyId = '',
+  int offset = 0,
+}) async {
+  final url = "https://api.mangacopy.com/api/v3/comments";
+
+  var headers = {
+    "user-agent": "COPY/2.2.5",
+    "source": "copyApp",
+    // "deviceinfo": "ALN-AL1-Allen",
+    "webp": "1",
+    "accept-encoding": "gzip",
+    "authorization": "Token",
+    "platform": "3",
+    "referer": "com.copymanga.app-2.2.5",
+    "accept": "application/json",
+    "version": "2.2.5",
+    "region": "1",
+    // "device": "V417IR",
+    "host": "api.mangacopy.com",
+    // "umstring": "b4c89ca4104ea9a97750314d791520ac" // 魔法字符串
+  };
+
+  var params = {
+    "comic_id": comicId,
+    "reply_id": replyId,
     "limit": 10,
     "offset": offset,
     "platform": 3,

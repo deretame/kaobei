@@ -1,15 +1,15 @@
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
+import 'package:kaobei/network/http/http_require.dart';
 import 'package:stream_transform/stream_transform.dart';
 
 import '../../../main.dart';
-import '../../../network/http/http_require.dart';
 import '../../../util/json_dispose.dart';
-import '../json/chapter_comments_json.dart';
+import '../json/comment_json.dart';
 
-part 'chapter_comment_event.dart';
-part 'chapter_comment_state.dart';
+part 'comment_event.dart';
+part 'comment_state.dart';
 
 const _throttleDuration = Duration(milliseconds: 100);
 
@@ -19,10 +19,9 @@ EventTransformer<E> _throttleDroppable<E>(Duration duration) {
   };
 }
 
-class ChapterCommentBloc
-    extends Bloc<ChapterCommentEvent, ChapterCommentState> {
-  ChapterCommentBloc() : super(ChapterCommentState()) {
-    on<ChapterCommentEvent>(
+class CommentBloc extends Bloc<CommentEvent, CommentState> {
+  CommentBloc() : super(CommentState()) {
+    on<CommentEvent>(
       _fetchComment,
       transformer: _throttleDroppable(_throttleDuration),
     );
@@ -32,21 +31,21 @@ class ChapterCommentBloc
   bool hasReachedMax = false;
 
   Future<void> _fetchComment(
-    ChapterCommentEvent event,
-    Emitter<ChapterCommentState> emit,
+    CommentEvent event,
+    Emitter<CommentState> emit,
   ) async {
-    if (event.status == ChapterCommentStatus.initial) {
+    if (event.status == CommentStatus.initial) {
       elements = [];
       hasReachedMax = false;
-      emit(state.copyWith(status: ChapterCommentStatus.initial));
+      emit(state.copyWith(status: CommentStatus.initial));
     }
 
     if (hasReachedMax) return;
 
-    if (event.status == ChapterCommentStatus.getMore) {
+    if (event.status == CommentStatus.getMore) {
       emit(
         state.copyWith(
-          status: ChapterCommentStatus.getMore,
+          status: CommentStatus.getMore,
           elements: elements,
           hasReachedMax: hasReachedMax,
         ),
@@ -54,12 +53,13 @@ class ChapterCommentBloc
     }
 
     try {
-      var temp = await getChapterComments(
-        chapterId: event.chapterId,
+      var temp = await getComicComments(
+        comicId: event.comicId,
+        replyId: event.parentId,
         offset: elements.length,
       );
 
-      final result = ChapterCommentsJson.fromJson(replaceNestedNull(temp));
+      final result = CommentJson.fromJson(replaceNestedNull(temp));
 
       elements = [...elements, ...result.results.list];
 
@@ -67,7 +67,7 @@ class ChapterCommentBloc
 
       emit(
         state.copyWith(
-          status: ChapterCommentStatus.success,
+          status: CommentStatus.success,
           elements: elements,
           hasReachedMax: hasReachedMax,
         ),
@@ -77,7 +77,7 @@ class ChapterCommentBloc
       if (elements.isNotEmpty) {
         emit(
           state.copyWith(
-            status: ChapterCommentStatus.getMoreFailure,
+            status: CommentStatus.getMoreFailure,
             elements: elements,
             hasReachedMax: hasReachedMax,
             result: e.toString(),
@@ -86,12 +86,7 @@ class ChapterCommentBloc
         return;
       }
 
-      emit(
-        state.copyWith(
-          status: ChapterCommentStatus.failure,
-          result: e.toString(),
-        ),
-      );
+      emit(state.copyWith(status: CommentStatus.failure, result: e.toString()));
     }
   }
 }

@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:kaobei/main.dart';
+import 'package:kaobei/network/http/http_require.dart';
 import 'package:kaobei/object_box/objectbox.g.dart';
 import 'package:kaobei/util/toast.dart';
 
@@ -69,13 +70,13 @@ class _ComicOperateWidgetState extends State<ComicOperateWidget> {
               children: <Widget>[
                 GestureDetector(
                   onTap: () {
-                    // AutoRouter.of(context).push(
-                    //   CommentsRoute(
-                    //     comicId: comicInfo.id,
-                    //     comicTitle: comicInfo.title,
-                    //   ),
-                    // );
-                    showErrorToast('暂不支持评论');
+                    AutoRouter.of(context).push(
+                      CommentRoute(
+                        type: SearchType.comic,
+                        comicId: comicInfo.info.results.comic.uuid,
+                        comicName: comicInfo.info.results.comic.name,
+                      ),
+                    );
                   },
                   child: const Icon(
                     Icons.comment_sharp,
