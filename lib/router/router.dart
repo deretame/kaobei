@@ -11,9 +11,10 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: NavigationBarRoute.page, initial: true),
     AutoRoute(page: SearchResultRoute.page),
     AutoRoute(page: ComicInfoRoute.page),
+    AutoRoute(page: ChapterCommentRoute.page),
+    AutoRoute(page: TagAuthorSearchRoute.page),
     AutoRoute(page: DownloadRoute.page),
     AutoRoute(page: ComicReadRoute.page),
-    AutoRoute(page: TagAuthorSearchRoute.page),
   ];
 
   @override

@@ -16,11 +16,7 @@ dynamic replaceNestedNull(dynamic value) {
   else if (value == null) {
     return ""; // 替换 null 为空字符串
   }
-  // 4. 保留字符串 "null"（不替换）
-  else if (value is String && value == "null") {
-    return value;
-  }
-  // 5. 其他类型直接返回原值
+  // 4. 其他类型直接返回原值
   else {
     return value;
   }

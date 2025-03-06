@@ -8,6 +8,7 @@ import 'package:kaobei/page/comic_info/comic_info.dart';
 import 'package:kaobei/page/comic_info/json/comic_all_info_json/comic_all_info_json.dart'
     as comic_all_info_json;
 import 'package:kaobei/page/comic_read/comic_read.dart';
+import 'package:kaobei/router/router.gr.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import '../../../config/config.dart';
@@ -83,6 +84,10 @@ class __ComicReadPageState extends State<_ComicReadPage> {
       widget.comicReadType == ComicReadType.download ||
       widget.comicReadType == ComicReadType.historyAndDownload;
 
+  bool get isHistory =>
+      widget.comicReadType == ComicReadType.history ||
+      widget.comicReadType == ComicReadType.historyAndDownload;
+
   late String comicId;
   late bool isSkipped = false; // 是否跳转过
   ComicReadJson? comicReadJson; // 阅读页面数据
@@ -99,7 +104,6 @@ class __ComicReadPageState extends State<_ComicReadPage> {
   bool _isInserting = false; // 检测数据插入状态
   DateTime? _lastUpdateTime; // 记录上次更新时间
   late ComicHistory? comicHistory; // 记录漫画阅读历史
-  late ComicReadType _type; // 阅读类型
   late comic_all_info_json.ComicAllInfoJson
   comicAllInfoJson; // 记录漫画全部信息，只有从下载列表过来才会有
   comic_all_info_json.Chapter? chapter; // 记录章节信息，只有从下载列表过来才会有
@@ -107,12 +111,11 @@ class __ComicReadPageState extends State<_ComicReadPage> {
   String title = ""; // 记录标题
   String uuid = ""; // 记录uuid
   List<String> comicImageUrlList = []; // 记录漫画图片列表
+  bool init = false; // 记录是否初始化完成
 
   @override
   void initState() {
     super.initState();
-    _type = widget.comicReadType;
-    logger.d("type: ${_type.toString()}");
     comicId = comicInfo.results.comic.pathWord;
     _itemScrollController = ItemScrollController();
     _itemPositionsListener = ItemPositionsListener.create();
@@ -226,7 +229,7 @@ class __ComicReadPageState extends State<_ComicReadPage> {
             _comicReadAppBar(),
             _pageCountWidget(),
             _bottomWidget(),
-            // _commentWidget(),
+            _commentWidget(),
           ],
         ),
       ),
@@ -273,7 +276,7 @@ class __ComicReadPageState extends State<_ComicReadPage> {
 
   Widget _bottomWidget() {
     return BottomWidget(
-      comicReadType: _type,
+      comicReadType: widget.comicReadType,
       chapter: chapter,
       chapterUUIDList: chapterUUIDList,
       comicReadJson: comicReadJson,
@@ -309,7 +312,11 @@ class __ComicReadPageState extends State<_ComicReadPage> {
           backgroundColor: materialColorScheme.primaryContainer,
           elevation: 4,
           child: Icon(Icons.comment),
-          onPressed: () {},
+          onPressed: () {
+            AutoRouter.of(context).push(
+              ChapterCommentRoute(chapterName: title, chapterId: chapterId),
+            );
+          },
         ),
       ),
     );
@@ -320,42 +327,42 @@ class __ComicReadPageState extends State<_ComicReadPage> {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
     }
 
-    if (!isDownload) {
-      comicImageUrlList = [];
-      comicReadJson = state!.eps!;
-      for (var i in comicReadJson!.results.chapter.contents) {
-        comicImageUrlList.add(i.url);
-      }
-      comicImageUrlList.sort();
-      title = comicReadJson!.results.chapter.name;
-      uuid = comicReadJson!.results.chapter.uuid;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        setState(() => epPages = comicImageUrlList.length.toString());
-      });
-    } else {
-      comicImageUrlList = [];
-      for (var group in comicAllInfoJson.groups) {
-        for (var chapterList in group.chapterList) {
-          chapterUUIDList.add(chapterList.chapterInfo.chapter.uuid);
-          if (chapterList.chapterInfo.chapter.uuid == chapterId) {
-            chapter = chapterList.chapterInfo.chapter;
-            comicImageUrlList = chapterList.chapterInfo.chapter.contents;
+    if (!init) {
+      if (!isDownload) {
+        comicImageUrlList = [];
+        comicReadJson = state!.eps!;
+        for (var i in comicReadJson!.results.chapter.contents) {
+          comicImageUrlList.add(i.url);
+        }
+        comicImageUrlList.sort();
+        title = comicReadJson!.results.chapter.name;
+        uuid = comicReadJson!.results.chapter.uuid;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          setState(() => epPages = comicImageUrlList.length.toString());
+        });
+      } else {
+        comicImageUrlList = [];
+        for (var group in comicAllInfoJson.groups) {
+          for (var chapterList in group.chapterList) {
+            chapterUUIDList.add(chapterList.chapterInfo.chapter.uuid);
+            if (chapterList.chapterInfo.chapter.uuid == chapterId) {
+              chapter = chapterList.chapterInfo.chapter;
+              comicImageUrlList = chapterList.chapterInfo.chapter.contents;
+            }
           }
         }
+        title = chapter!.name;
+        uuid = chapter!.uuid;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          setState(() => epPages = comicImageUrlList.length.toString());
+        });
       }
-      title = chapter!.name;
-      uuid = chapter!.uuid;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        setState(() => epPages = comicImageUrlList.length.toString());
-      });
+
+      _totalSlots = comicImageUrlList.length;
     }
+    init = true;
 
-    _totalSlots = comicImageUrlList.length;
-
-    if ((_type == ComicReadType.history ||
-            _type == ComicReadType.historyAndDownload) &&
-        (comicHistory!.chapterIndex != 0) &&
-        isSkipped == false) {
+    if (isHistory && comicHistory!.chapterIndex != 0 && isSkipped == false) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _itemScrollController.scrollTo(
           index: comicHistory!.chapterIndex,

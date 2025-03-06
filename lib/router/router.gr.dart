@@ -8,33 +8,34 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:auto_route/auto_route.dart' as _i10;
-import 'package:flutter/material.dart' as _i11;
-import 'package:kaobei/mobx/string_store.dart' as _i14;
-import 'package:kaobei/network/http/http_require.dart' as _i16;
+import 'package:auto_route/auto_route.dart' as _i11;
+import 'package:flutter/material.dart' as _i12;
+import 'package:kaobei/mobx/string_store.dart' as _i15;
+import 'package:kaobei/network/http/http_require.dart' as _i17;
 import 'package:kaobei/page/bookshelf/view/bookshelf_page.dart' as _i1;
-import 'package:kaobei/page/comic/view/comic_page.dart' as _i3;
-import 'package:kaobei/page/comic_info/comic_info.dart' as _i12;
-import 'package:kaobei/page/comic_info/json/info/comic_info_json.dart' as _i13;
-import 'package:kaobei/page/comic_info/models/comic_info.dart' as _i15;
-import 'package:kaobei/page/comic_info/view/comic_info.dart' as _i2;
-import 'package:kaobei/page/comic_read/view/comic_read.dart' as _i4;
+import 'package:kaobei/page/chapter_comment/view/chapter_comment.dart' as _i2;
+import 'package:kaobei/page/comic/view/comic_page.dart' as _i4;
+import 'package:kaobei/page/comic_info/comic_info.dart' as _i13;
+import 'package:kaobei/page/comic_info/json/info/comic_info_json.dart' as _i14;
+import 'package:kaobei/page/comic_info/models/comic_info.dart' as _i16;
+import 'package:kaobei/page/comic_info/view/comic_info.dart' as _i3;
+import 'package:kaobei/page/comic_read/view/comic_read.dart' as _i5;
 import 'package:kaobei/page/comic_tag_author_search/view/comic_tag_author_search.dart'
-    as _i9;
-import 'package:kaobei/page/download/download.dart' as _i5;
-import 'package:kaobei/page/more/view/more_page.dart' as _i6;
-import 'package:kaobei/page/navigation_bar.dart' as _i7;
-import 'package:kaobei/page/search_result/view/search_result.dart' as _i8;
+    as _i10;
+import 'package:kaobei/page/download/download.dart' as _i6;
+import 'package:kaobei/page/more/view/more_page.dart' as _i7;
+import 'package:kaobei/page/navigation_bar.dart' as _i8;
+import 'package:kaobei/page/search_result/view/search_result.dart' as _i9;
 
 /// generated route for
 /// [_i1.BookShelf]
-class BookShelf extends _i10.PageRouteInfo<BookShelfArgs> {
+class BookShelf extends _i11.PageRouteInfo<BookShelfArgs> {
   BookShelf({
-    _i11.Key? key,
-    required _i11.ScrollController collectScrollController,
-    required _i11.ScrollController historyScrollController,
-    required _i11.ScrollController downloadScrollController,
-    List<_i10.PageRouteInfo>? children,
+    _i12.Key? key,
+    required _i12.ScrollController collectScrollController,
+    required _i12.ScrollController historyScrollController,
+    required _i12.ScrollController downloadScrollController,
+    List<_i11.PageRouteInfo>? children,
   }) : super(
          BookShelf.name,
          args: BookShelfArgs(
@@ -48,7 +49,7 @@ class BookShelf extends _i10.PageRouteInfo<BookShelfArgs> {
 
   static const String name = 'BookShelf';
 
-  static _i10.PageInfo page = _i10.PageInfo(
+  static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<BookShelfArgs>();
@@ -70,13 +71,13 @@ class BookShelfArgs {
     required this.downloadScrollController,
   });
 
-  final _i11.Key? key;
+  final _i12.Key? key;
 
-  final _i11.ScrollController collectScrollController;
+  final _i12.ScrollController collectScrollController;
 
-  final _i11.ScrollController historyScrollController;
+  final _i12.ScrollController historyScrollController;
 
-  final _i11.ScrollController downloadScrollController;
+  final _i12.ScrollController downloadScrollController;
 
   @override
   String toString() {
@@ -85,13 +86,65 @@ class BookShelfArgs {
 }
 
 /// generated route for
-/// [_i2.ComicInfoPage]
-class ComicInfoRoute extends _i10.PageRouteInfo<ComicInfoRouteArgs> {
+/// [_i2.ChapterCommentPage]
+class ChapterCommentRoute extends _i11.PageRouteInfo<ChapterCommentRouteArgs> {
+  ChapterCommentRoute({
+    _i12.Key? key,
+    required String chapterId,
+    required String chapterName,
+    List<_i11.PageRouteInfo>? children,
+  }) : super(
+         ChapterCommentRoute.name,
+         args: ChapterCommentRouteArgs(
+           key: key,
+           chapterId: chapterId,
+           chapterName: chapterName,
+         ),
+         initialChildren: children,
+       );
+
+  static const String name = 'ChapterCommentRoute';
+
+  static _i11.PageInfo page = _i11.PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<ChapterCommentRouteArgs>();
+      return _i2.ChapterCommentPage(
+        key: args.key,
+        chapterId: args.chapterId,
+        chapterName: args.chapterName,
+      );
+    },
+  );
+}
+
+class ChapterCommentRouteArgs {
+  const ChapterCommentRouteArgs({
+    this.key,
+    required this.chapterId,
+    required this.chapterName,
+  });
+
+  final _i12.Key? key;
+
+  final String chapterId;
+
+  final String chapterName;
+
+  @override
+  String toString() {
+    return 'ChapterCommentRouteArgs{key: $key, chapterId: $chapterId, chapterName: $chapterName}';
+  }
+}
+
+/// generated route for
+/// [_i3.ComicInfoPage]
+class ComicInfoRoute extends _i11.PageRouteInfo<ComicInfoRouteArgs> {
   ComicInfoRoute({
-    _i11.Key? key,
+    _i12.Key? key,
     required String comicId,
-    _i12.ComicReadType? comicReadType,
-    List<_i10.PageRouteInfo>? children,
+    _i13.ComicReadType? comicReadType,
+    List<_i11.PageRouteInfo>? children,
   }) : super(
          ComicInfoRoute.name,
          args: ComicInfoRouteArgs(
@@ -104,11 +157,11 @@ class ComicInfoRoute extends _i10.PageRouteInfo<ComicInfoRouteArgs> {
 
   static const String name = 'ComicInfoRoute';
 
-  static _i10.PageInfo page = _i10.PageInfo(
+  static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<ComicInfoRouteArgs>();
-      return _i2.ComicInfoPage(
+      return _i3.ComicInfoPage(
         key: args.key,
         comicId: args.comicId,
         comicReadType: args.comicReadType,
@@ -124,11 +177,11 @@ class ComicInfoRouteArgs {
     this.comicReadType,
   });
 
-  final _i11.Key? key;
+  final _i12.Key? key;
 
   final String comicId;
 
-  final _i12.ComicReadType? comicReadType;
+  final _i13.ComicReadType? comicReadType;
 
   @override
   String toString() {
@@ -137,31 +190,31 @@ class ComicInfoRouteArgs {
 }
 
 /// generated route for
-/// [_i3.ComicPage]
-class ComicRoute extends _i10.PageRouteInfo<void> {
-  const ComicRoute({List<_i10.PageRouteInfo>? children})
+/// [_i4.ComicPage]
+class ComicRoute extends _i11.PageRouteInfo<void> {
+  const ComicRoute({List<_i11.PageRouteInfo>? children})
     : super(ComicRoute.name, initialChildren: children);
 
   static const String name = 'ComicRoute';
 
-  static _i10.PageInfo page = _i10.PageInfo(
+  static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
-      return const _i3.ComicPage();
+      return const _i4.ComicPage();
     },
   );
 }
 
 /// generated route for
-/// [_i4.ComicReadPage]
-class ComicReadRoute extends _i10.PageRouteInfo<ComicReadRouteArgs> {
+/// [_i5.ComicReadPage]
+class ComicReadRoute extends _i11.PageRouteInfo<ComicReadRouteArgs> {
   ComicReadRoute({
-    _i11.Key? key,
+    _i12.Key? key,
     required String chapterId,
-    required _i13.ComicInfoJson comicInfo,
-    required _i14.StringStore stringStore,
-    _i15.ComicReadType? comicReadType,
-    List<_i10.PageRouteInfo>? children,
+    required _i14.ComicInfoJson comicInfo,
+    required _i15.StringStore stringStore,
+    _i13.ComicReadType? comicReadType,
+    List<_i11.PageRouteInfo>? children,
   }) : super(
          ComicReadRoute.name,
          args: ComicReadRouteArgs(
@@ -176,11 +229,11 @@ class ComicReadRoute extends _i10.PageRouteInfo<ComicReadRouteArgs> {
 
   static const String name = 'ComicReadRoute';
 
-  static _i10.PageInfo page = _i10.PageInfo(
+  static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<ComicReadRouteArgs>();
-      return _i4.ComicReadPage(
+      return _i5.ComicReadPage(
         key: args.key,
         chapterId: args.chapterId,
         comicInfo: args.comicInfo,
@@ -200,15 +253,15 @@ class ComicReadRouteArgs {
     this.comicReadType,
   });
 
-  final _i11.Key? key;
+  final _i12.Key? key;
 
   final String chapterId;
 
-  final _i13.ComicInfoJson comicInfo;
+  final _i14.ComicInfoJson comicInfo;
 
-  final _i14.StringStore stringStore;
+  final _i15.StringStore stringStore;
 
-  final _i15.ComicReadType? comicReadType;
+  final _i13.ComicReadType? comicReadType;
 
   @override
   String toString() {
@@ -217,13 +270,13 @@ class ComicReadRouteArgs {
 }
 
 /// generated route for
-/// [_i5.DownloadPage]
-class DownloadRoute extends _i10.PageRouteInfo<DownloadRouteArgs> {
+/// [_i6.DownloadPage]
+class DownloadRoute extends _i11.PageRouteInfo<DownloadRouteArgs> {
   DownloadRoute({
-    _i11.Key? key,
-    required _i15.ComicInfo comicInfo,
+    _i12.Key? key,
+    required _i16.ComicInfo comicInfo,
     required String comicInfoJsonStr,
-    List<_i10.PageRouteInfo>? children,
+    List<_i11.PageRouteInfo>? children,
   }) : super(
          DownloadRoute.name,
          args: DownloadRouteArgs(
@@ -236,11 +289,11 @@ class DownloadRoute extends _i10.PageRouteInfo<DownloadRouteArgs> {
 
   static const String name = 'DownloadRoute';
 
-  static _i10.PageInfo page = _i10.PageInfo(
+  static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<DownloadRouteArgs>();
-      return _i5.DownloadPage(
+      return _i6.DownloadPage(
         key: args.key,
         comicInfo: args.comicInfo,
         comicInfoJsonStr: args.comicInfoJsonStr,
@@ -256,9 +309,9 @@ class DownloadRouteArgs {
     required this.comicInfoJsonStr,
   });
 
-  final _i11.Key? key;
+  final _i12.Key? key;
 
-  final _i15.ComicInfo comicInfo;
+  final _i16.ComicInfo comicInfo;
 
   final String comicInfoJsonStr;
 
@@ -269,63 +322,63 @@ class DownloadRouteArgs {
 }
 
 /// generated route for
-/// [_i6.MorePage]
-class MoreRoute extends _i10.PageRouteInfo<void> {
-  const MoreRoute({List<_i10.PageRouteInfo>? children})
+/// [_i7.MorePage]
+class MoreRoute extends _i11.PageRouteInfo<void> {
+  const MoreRoute({List<_i11.PageRouteInfo>? children})
     : super(MoreRoute.name, initialChildren: children);
 
   static const String name = 'MoreRoute';
 
-  static _i10.PageInfo page = _i10.PageInfo(
+  static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
-      return const _i6.MorePage();
+      return const _i7.MorePage();
     },
   );
 }
 
 /// generated route for
-/// [_i7.NavigationBarPage]
-class NavigationBarRoute extends _i10.PageRouteInfo<void> {
-  const NavigationBarRoute({List<_i10.PageRouteInfo>? children})
+/// [_i8.NavigationBarPage]
+class NavigationBarRoute extends _i11.PageRouteInfo<void> {
+  const NavigationBarRoute({List<_i11.PageRouteInfo>? children})
     : super(NavigationBarRoute.name, initialChildren: children);
 
   static const String name = 'NavigationBarRoute';
 
-  static _i10.PageInfo page = _i10.PageInfo(
+  static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
-      return const _i7.NavigationBarPage();
+      return const _i8.NavigationBarPage();
     },
   );
 }
 
 /// generated route for
-/// [_i8.SearchResultPage]
-class SearchResultRoute extends _i10.PageRouteInfo<void> {
-  const SearchResultRoute({List<_i10.PageRouteInfo>? children})
+/// [_i9.SearchResultPage]
+class SearchResultRoute extends _i11.PageRouteInfo<void> {
+  const SearchResultRoute({List<_i11.PageRouteInfo>? children})
     : super(SearchResultRoute.name, initialChildren: children);
 
   static const String name = 'SearchResultRoute';
 
-  static _i10.PageInfo page = _i10.PageInfo(
+  static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
-      return const _i8.SearchResultPage();
+      return const _i9.SearchResultPage();
     },
   );
 }
 
 /// generated route for
-/// [_i9.TagAuthorSearchPage]
+/// [_i10.TagAuthorSearchPage]
 class TagAuthorSearchRoute
-    extends _i10.PageRouteInfo<TagAuthorSearchRouteArgs> {
+    extends _i11.PageRouteInfo<TagAuthorSearchRouteArgs> {
   TagAuthorSearchRoute({
-    _i11.Key? key,
+    _i12.Key? key,
     required String name,
     required String pathWord,
-    required _i16.QType qType,
-    List<_i10.PageRouteInfo>? children,
+    required _i17.QType qType,
+    List<_i11.PageRouteInfo>? children,
   }) : super(
          TagAuthorSearchRoute.name,
          args: TagAuthorSearchRouteArgs(
@@ -339,11 +392,11 @@ class TagAuthorSearchRoute
 
   static const String name = 'TagAuthorSearchRoute';
 
-  static _i10.PageInfo page = _i10.PageInfo(
+  static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<TagAuthorSearchRouteArgs>();
-      return _i9.TagAuthorSearchPage(
+      return _i10.TagAuthorSearchPage(
         key: args.key,
         name: args.name,
         pathWord: args.pathWord,
@@ -361,13 +414,13 @@ class TagAuthorSearchRouteArgs {
     required this.qType,
   });
 
-  final _i11.Key? key;
+  final _i12.Key? key;
 
   final String name;
 
   final String pathWord;
 
-  final _i16.QType qType;
+  final _i17.QType qType;
 
   @override
   String toString() {
