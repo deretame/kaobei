@@ -173,7 +173,11 @@ class __CommentPagePageState extends State<_CommentPage> {
           }
         }
 
-        return CommentWidget(element: state.elements![index]);
+        return CommentWidget(
+          element: state.elements![index],
+          comicId: comicId,
+          comicName: widget.comicName,
+        );
       },
       controller: _scrollController,
     );
