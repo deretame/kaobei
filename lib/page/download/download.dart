@@ -341,7 +341,20 @@ class _DownloadPageState extends State<DownloadPage> {
 
     comicAllInfo.groups.removeWhere((group) => group.chapterList.isEmpty);
 
-    comicAllInfo.groups.sort((a, b) => a.count.compareTo(b.count));
+    // 创建一个映射，记录 comicInfo.groups 的顺序
+    final orderMap = <String, int>{};
+    for (var i = 0; i < comicInfo.groups.length; i++) {
+      orderMap[comicInfo.groups[i].pathWord] = i;
+    }
+
+    // 对 comicAllInfo.groups 进行排序
+    comicAllInfo.groups.sort((groupA, groupB) {
+      final indexA =
+          orderMap[groupA.pathWord] ?? comicInfo.groups.length; // 如果不存在，放在最后
+      final indexB =
+          orderMap[groupB.pathWord] ?? comicInfo.groups.length; // 如果不存在，放在最后
+      return indexA.compareTo(indexB);
+    });
 
     for (var group in comicAllInfo.groups) {
       group.chapterList.sort(
