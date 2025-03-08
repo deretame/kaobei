@@ -121,17 +121,11 @@ class _ComicInfoPageState extends State<_ComicInfoPage> {
                               comicAllInfoJson!,
                               comicInfoJsonStr,
                             );
-                            showSuccessToast(
-                              '漫画${comicInfo!.info.results.comic.name}导出为压缩包完成',
-                            );
                           } else if (choice == ExportType.folder) {
                             showInfoToast('正在导出漫画...');
                             exportComicAsFolder(
                               comicAllInfoJson!,
                               comicInfoJsonStr,
-                            );
-                            showSuccessToast(
-                              '漫画${comicInfo!.info.results.comic.name}导出为文件夹完成',
                             );
                           } else {
                             return;

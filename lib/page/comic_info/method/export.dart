@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../../main.dart';
 import '../../../network/http/picture.dart';
+import '../../../util/toast.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
 import '../json/comic_all_info_json/comic_all_info_json.dart';
 
@@ -88,6 +89,8 @@ Future<void> exportComicAsFolder(
       }
     }
   }
+
+  showSuccessToast('漫画${comicInfo.comic.name}导出为文件夹完成');
 }
 
 // 可序列化的参数类
@@ -151,15 +154,17 @@ Future<void> exportComicAsZip(
   };
 
   // 在后台Isolate中执行压缩
-  await Isolate.run(
-    () => _createZipInBackground(
+  await Isolate.run(() async {
+    await _createZipInBackground(
       ZipArguments(
         zipFilePath: zipFilePath,
         jsonFiles: jsonFiles,
         filesToAdd: filesToAdd,
       ),
-    ),
-  );
+    );
+  });
+
+  showSuccessToast('漫画${comicInfo.comic.name}导出为压缩包完成');
 }
 
 Future<void> _createZipInBackground(ZipArguments args) async {
