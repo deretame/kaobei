@@ -151,6 +151,11 @@ class _ComicInfoPageState extends State<_ComicInfoPage> {
                       child: FloatingActionButton(
                         onPressed: () {
                           ComicReadType comicReadType = widget.comicReadType;
+                          if (comicReadType == ComicReadType.download) {
+                            comicReadType = ComicReadType.historyAndDownload;
+                          } else {
+                            comicReadType = ComicReadType.history;
+                          }
                           var uuid =
                               objectbox.historyBox
                                   .query(ComicHistory_.pathWord.equals(comicId))

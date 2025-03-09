@@ -216,7 +216,11 @@ class __ComicReadPageState extends State<_ComicReadPage> {
   }
 
   Widget _successWidget(ComicReadState? state) {
-    _initData(state);
+    try {
+      _initData(state);
+    } catch (e) {
+      return Center(child: Text("章节未下载", style: TextStyle(fontSize: 30)));
+    }
 
     return SafeArea(
       top: false,
