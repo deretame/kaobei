@@ -60,7 +60,6 @@ class CoverWidget extends StatelessWidget {
                     ),
                   ),
                 );
-
               case PictureLoadStatus.failure:
                 if (state.result.toString().contains('404')) {
                   return Center(child: Icon(Icons.error));

@@ -133,8 +133,12 @@ class _DownloadPageState extends State<_DownloadPage>
       child: ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.only(top: 10),
-        itemCount: temp.length,
+        itemCount: temp.length + 1,
         itemBuilder: (context, index) {
+          if (index == temp.length) {
+            return SizedBox(height: 80);
+          }
+
           return elementInfoRow(
             temp[index],
             context,

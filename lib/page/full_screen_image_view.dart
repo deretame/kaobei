@@ -69,7 +69,7 @@ class FullScreenImageView extends StatelessWidget {
     // 检查存储权限
     if (await Permission.storage.request().isGranted) {
       // 创建Pictures目录的完整路径
-      final picturesDir = '/storage/emulated/0/Pictures/Kaobei';
+      final picturesDir = '/storage/emulated/0/Pictures/拷贝';
       logger.d('Pictures directory: $picturesDir');
 
       // 确保Pictures目录存在

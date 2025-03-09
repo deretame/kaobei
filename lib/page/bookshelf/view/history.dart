@@ -133,12 +133,15 @@ class _HistoryPageState extends State<_HistoryPage>
       child: ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.only(top: 10),
-        itemCount: temp.length,
+        itemCount: temp.length + 1,
         itemBuilder: (context, index) {
+          if (index == temp.length) {
+            return SizedBox(height: 80);
+          }
           return elementInfoRow(
             temp[index],
             context,
-            comicReadType: ComicReadType.history,
+            comicReadType: ComicReadType.favorite,
           );
         },
         controller: scrollController,

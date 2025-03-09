@@ -39,13 +39,16 @@ class _SortWidgetState extends State<SortWidget> {
       elevation: 16,
       underline: Container(height: 2),
       onChanged: (QType? value) {
-        searchEnterStore.setQType(value!);
+        setState(() {
+          searchEnterStore.qType = value!;
+          searchEnterStore.setQType(value);
+        });
         context.read<SearchResultBloc>().add(
           SearchResultEvent(
             SearchEnter(
               keyword: searchEnterStore.keyword,
               searchType: searchEnterStore.searchType,
-              qType: value,
+              qType: value!,
               extend: searchEnterStore.extend,
             ),
             SearchStatus.initial,

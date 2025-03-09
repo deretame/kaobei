@@ -41,7 +41,7 @@ class CoverWidget extends StatelessWidget {
                 return Center(child: CircularProgressIndicator());
               case PictureLoadStatus.success:
                 return GestureDetector(
-                  onTap: () {
+                  onLongPress: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -60,7 +60,6 @@ class CoverWidget extends StatelessWidget {
                     ),
                   ),
                 );
-
               case PictureLoadStatus.failure:
                 if (state.result.toString().contains('404')) {
                   return Center(child: Icon(Icons.error));
