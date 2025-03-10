@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:archive/archive_io.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
+import 'package:tar/tar.dart';
 
 import '../../../main.dart';
 import '../../../network/http/picture.dart';
@@ -161,7 +161,7 @@ Future<void> exportComicAsZip(
       }
       int i = 1;
       for (var picture in chapter.chapterInfo.chapter.contents) {
-        var pictureFile = File('$chapterDir/${i++}.jpg');
+        var pictureFile = File('$chapterDir/${i++}.${picture.split('.').last}');
         if (!await pictureFile.exists()) {
           await pictureFile.create(recursive: true);
         }
@@ -224,46 +224,43 @@ Future<void> _compressInBackground(
 }
 
 /// 后台线程的入口函数
-void _compressIsolate(_CompressIsolateData data) async {
-  var archive = Archive();
-  await _addDirectoryToArchive(
-    archive,
-    Directory(data.comicDir),
-    data.comicDir,
-  );
+Future<void> _compressIsolate(_CompressIsolateData data) async {
+  var outputPath = '${data.downloadPath}${data.comicName}.tar';
 
-  // 保存 ZIP 文件
-  var outputPath = '${data.downloadPath}/${data.comicName}.zip';
-  var zipFile = File(outputPath);
-  await zipFile.writeAsBytes(
-    ZipEncoder().encodeBytes(
-      archive,
-      level: DeflateLevel.none,
-      output: OutputFileStream(outputPath),
-    ),
-  );
+  final entries = findEntries(outputPath, data.comicDir);
+  final output = File(outputPath);
+
+  await entries.transform(tarWriter).pipe(output.openWrite());
 
   // 通知主线程压缩完成
   data.sendPort.send(null);
 }
 
-/// 将目录中的所有文件添加到 Archive 中
-Future<void> _addDirectoryToArchive(
-  Archive archive,
-  Directory directory,
-  String rootPath,
-) async {
-  var files = directory.listSync(recursive: true);
-  for (var file in files) {
-    if (file is File) {
-      var relativePath = path.relative(file.path, from: rootPath);
-      var archiveFile = ArchiveFile(
-        relativePath,
-        file.lengthSync(),
-        file.readAsBytesSync(),
-      );
-      archive.addFile(archiveFile);
-    }
+Stream<TarEntry> findEntries(String outputName, String comicDir) async* {
+  final root = Directory(comicDir);
+  await for (final entry in root.list(recursive: true)) {
+    if (entry is! File) continue;
+
+    final name = path.relative(entry.path, from: root.path);
+
+    if (name.startsWith('.')) continue;
+
+    if (name == outputName) continue;
+
+    final stat = entry.statSync();
+
+    yield TarEntry(
+      TarHeader(
+        name: name,
+        typeFlag: TypeFlag.reg,
+        mode: stat.mode,
+        modified: stat.modified,
+        accessed: stat.accessed,
+        changed: stat.changed,
+        size: stat.size,
+      ),
+      entry.openRead(),
+    );
   }
 }
 

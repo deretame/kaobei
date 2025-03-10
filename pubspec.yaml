@@ -1,6 +1,6 @@
 name: kaobei
 description: "使用flutter编写的三方拷贝漫画"
-version: 1.2.3+9
+version: 1.2.4+10
 
 environment:
   sdk: ^3.7.0-323.0.dev
@@ -51,6 +51,7 @@ dependencies:
   crypto: ^3.0.6                 # 常用加密算法集合（MD5/SHA等）
   encrypt: ^5.0.3                # 加密/解密工具包（AES/RSA等）
   archive: ^4.0.2                # 压缩/解压缩工具（ZIP/TAR等）
+  tar: ^2.0.0                    # TAR 文件解压缩工具
 
   # ================== 系统交互与设备功能 ==================
   path_provider: ^2.1.5          # 获取系统路径（文档/临时目录等）
