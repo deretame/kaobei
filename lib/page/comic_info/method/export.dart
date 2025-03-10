@@ -233,9 +233,14 @@ void _compressIsolate(_CompressIsolateData data) async {
   );
 
   // 保存 ZIP 文件
-  var zipFile = File('${data.downloadPath}/${data.comicName}.zip');
+  var outputPath = '${data.downloadPath}/${data.comicName}.zip';
+  var zipFile = File(outputPath);
   await zipFile.writeAsBytes(
-    ZipEncoder().encodeBytes(archive, level: DeflateLevel.none),
+    ZipEncoder().encodeBytes(
+      archive,
+      level: DeflateLevel.none,
+      output: OutputFileStream(outputPath),
+    ),
   );
 
   // 通知主线程压缩完成
