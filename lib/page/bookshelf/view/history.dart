@@ -141,7 +141,7 @@ class _HistoryPageState extends State<_HistoryPage>
           return elementInfoRow(
             temp[index],
             context,
-            comicReadType: ComicReadType.favorite,
+            comicReadType: ComicReadType.history,
           );
         },
         controller: scrollController,
