@@ -124,7 +124,9 @@ class _BottomWidgetState extends State<BottomWidget> {
   @override
   Widget build(BuildContext context) {
     final (prev, next) = _chapterNavigation;
-    final isDownloadType = _comicReadType == ComicReadType.download;
+    final isDownloadType =
+        _comicReadType == ComicReadType.download ||
+        _comicReadType == ComicReadType.historyAndDownload;
 
     return Observer(
       builder: (context) {

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:dio/dio.dart';
 import 'package:dynamic_color/dynamic_color.dart';
@@ -50,6 +51,16 @@ late ColorScheme materialColorSchemeDark;
 var logger = Logger(printer: CustomPrinter());
 
 Future<void> main() async {
+  // 捕获 Flutter 框架异常
+  FlutterError.onError = (FlutterErrorDetails details) {
+    logger.e(details, error: details.exception, stackTrace: details.stack);
+  };
+  // 捕获所有未处理的 Dart 异常
+  PlatformDispatcher.instance.onError = (error, stackTrace) {
+    logger.e(error, stackTrace: stackTrace);
+    return true; // 返回 true 表示异常已处理
+  };
+
   // 捕获Dart异常
   runZonedGuarded(
     () async {
@@ -83,10 +94,7 @@ Future<void> main() async {
       Hive.registerAdapter(ThemeModeAdapter());
       await setting.initBox();
 
-      runApp(const MyApp()); // 捕获Flutter框架异常
-      FlutterError.onError = (FlutterErrorDetails details) {
-        logger.e(details, error: details.exception, stackTrace: details.stack);
-      };
+      runApp(const MyApp());
     },
     (error, stackTrace) {
       logger.e(error, stackTrace: stackTrace);
