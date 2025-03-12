@@ -423,7 +423,7 @@ class __ComicReadPageState extends State<_ComicReadPage> {
             duration: const Duration(milliseconds: 500),
           );
         } else {
-          logger.d(comicHistory!.chapterIndex - 1);
+          // logger.d(comicHistory!.chapterIndex - 1);
           _pageController.animateToPage(
             comicHistory!.chapterIndex - 1,
             duration: const Duration(milliseconds: 300),
@@ -542,14 +542,11 @@ class __ComicReadPageState extends State<_ComicReadPage> {
   void _handleTap(TapDownDetails details) {
     // 获取点击的全局坐标
     final Offset tapPosition = details.globalPosition;
-    // 获取屏幕宽度和高度
-    final double screenWidth = MediaQuery.of(context).size.width;
-    final double screenHeight = MediaQuery.of(context).size.height;
     // 将屏幕宽度分为三等份
     final double thirdWidth = screenWidth / 3;
-    // 将中间区域的高度分为上面三分之二和下面三分之一
-    final double middleTopHeight = screenHeight * 2 / 3;
-    // final double middleBottomHeight = screenHeight / 3;
+    // 将中间区域的高度分为三等份
+    final double middleTopHeight = screenHeight / 3; // 上三分之一
+    final double middleBottomHeight = screenHeight * 2 / 3; // 下三分之一
 
     final readMode = setting.readMode == 1 ? true : false;
 
@@ -564,11 +561,19 @@ class __ComicReadPageState extends State<_ComicReadPage> {
     } else if (tapPosition.dx < 2 * thirdWidth) {
       // 点击中间三分之一
       if (tapPosition.dy < middleTopHeight) {
+        // 点击中间区域的上三分之一
+        _pageController.animateToPage(
+          pageIndex - 3,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      } else if (tapPosition.dy < middleBottomHeight) {
+        // 点击中间区域的中三分之一
         _toggleVisibility();
       } else {
-        // 点击中间三分之一的下面三分之一
+        // 点击中间区域的下三分之一
         _pageController.animateToPage(
-          readMode ? pageIndex - 1 : pageIndex - 3,
+          pageIndex - 1,
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
         );
