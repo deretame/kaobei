@@ -4,12 +4,14 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:kaobei/page/comic_info/comic_info.dart';
 import 'package:kaobei/page/comic_info/json/comic_all_info_json/comic_all_info_json.dart'
     as comic_all_info_json;
 import 'package:kaobei/page/comic_read/comic_read.dart';
 import 'package:kaobei/router/router.gr.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../config/config.dart';
 import '../../../main.dart';
@@ -93,6 +95,7 @@ class __ComicReadPageState extends State<_ComicReadPage> {
   ComicReadJson? comicReadJson; // 阅读页面数据
   late final ItemScrollController _itemScrollController;
   late final ItemPositionsListener _itemPositionsListener;
+  final PageController _pageController = PageController(initialPage: 0);
   int pageIndex = 0; // 当前页数
   String epPages = ""; // 章节总页数
   bool _isVisible = true; // 控制 AppBar 和 BottomAppBar 的可见性
@@ -112,10 +115,16 @@ class __ComicReadPageState extends State<_ComicReadPage> {
   String uuid = ""; // 记录uuid
   List<String> comicImageUrlList = []; // 记录漫画图片列表
   bool init = false; // 记录是否初始化完成
+  String refresh = ""; // 用来重建图片列表
+  Timer? _timer; // 定时器，定时存储阅读记录
+  TapDownDetails? _tapDownDetails; // 保存点击信息
 
   @override
   void initState() {
     super.initState();
+    if (setting.readMode != 0) {
+      pageIndex = 2;
+    }
     comicId = comicInfo.results.comic.pathWord;
     _itemScrollController = ItemScrollController();
     _itemPositionsListener = ItemPositionsListener.create();
@@ -154,71 +163,85 @@ class __ComicReadPageState extends State<_ComicReadPage> {
             .allInfo,
       );
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (setting.readMode != 0) {
+        await Future.delayed(
+          Duration(milliseconds: 200),
+          () => setState(() => _isVisible = false),
+        );
+      }
+
+      await Future.delayed(Duration(seconds: 1));
+      _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
+        writeToDatabase();
+      });
+    });
   }
 
   @override
   void dispose() {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    _pageController.dispose();
+    _timer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body:
-          isDownload
-              ? _successWidget(null)
-              : BlocBuilder<ComicReadBloc, ComicReadState>(
-                builder: (context, state) {
-                  switch (state.status) {
-                    case ComicReadStatus.initial:
-                      return Container(
-                        color: Color(0xFF2D2D2D),
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            color: Color(0xFFCCCCCC),
-                          ),
-                        ),
-                      );
-                    case ComicReadStatus.failure:
-                      return _errorWidget(state);
-                    case ComicReadStatus.success:
-                      return _successWidget(state);
-                  }
-                },
-              ),
-    );
+    return Scaffold(body: _body());
   }
 
-  Widget _errorWidget(ComicReadState state) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () {
-        context.read<ComicReadBloc>().add(
-          ComicReadEvent(ComicReadStatus.initial, comicId, chapterId),
+  Widget _body() {
+    return isDownload
+        ? _successWidget(null)
+        : BlocBuilder<ComicReadBloc, ComicReadState>(
+          builder: (context, state) {
+            switch (state.status) {
+              case ComicReadStatus.initial:
+                return Container(
+                  color: Color(0xFF2D2D2D),
+                  child: Center(
+                    child: CircularProgressIndicator(color: Color(0xFFCCCCCC)),
+                  ),
+                );
+              case ComicReadStatus.failure:
+                return _errorWidget(state);
+              case ComicReadStatus.success:
+                return _successWidget(state);
+            }
+          },
         );
-      },
-      child: Container(
-        color: Color(0xFF2D2D2D),
-        child: Center(
-          child: Padding(
-            padding: EdgeInsets.all(10),
-            child: RichText(
-              text: TextSpan(
-                text: '${state.result.toString()}\n加载失败，点击重试',
-                style: TextStyle(fontSize: 20, color: Color(0xFFCCCCCC)),
-              ),
+  }
+
+  Widget _errorWidget(ComicReadState state) => GestureDetector(
+    behavior: HitTestBehavior.opaque,
+    onTap: () {
+      context.read<ComicReadBloc>().add(
+        ComicReadEvent(ComicReadStatus.initial, comicId, chapterId),
+      );
+    },
+    child: Container(
+      color: Color(0xFF2D2D2D),
+      child: Center(
+        child: Padding(
+          padding: EdgeInsets.all(10),
+          child: RichText(
+            text: TextSpan(
+              text: '${state.result.toString()}\n加载失败，点击重试',
+              style: TextStyle(fontSize: 20, color: Color(0xFFCCCCCC)),
             ),
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
 
   Widget _successWidget(ComicReadState? state) {
     try {
       _initData(state);
-    } catch (e) {
+    } catch (e, stacktrace) {
+      logger.e(e, stackTrace: stacktrace);
       return Center(child: Text("章节未下载", style: TextStyle(fontSize: 30)));
     }
 
@@ -240,91 +263,116 @@ class __ComicReadPageState extends State<_ComicReadPage> {
     );
   }
 
-  Widget _readListWidget() {
-    return GestureDetector(
-      onTap:
-          () => setState(() {
-            _isVisible = !_isVisible;
-            if (_isVisible) {
-              SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  Widget _readListWidget() => GestureDetector(
+    onTap:
+        setting.readMode != 0
+            ? () {
+              if (_tapDownDetails != null) {
+                // 使用保存的details执行处理逻辑
+                _handleTap(_tapDownDetails!);
+                _tapDownDetails = null;
+              }
             }
-          }),
-      child: InteractiveViewer(
-        boundaryMargin: EdgeInsets.zero,
-        minScale: 1.0,
-        maxScale: 4.0,
-        child: ColumnList(
-          comicImageUrlList: comicImageUrlList,
-          comicId: comicId,
-          uuid: uuid,
-          itemScrollController: _itemScrollController,
-          itemPositionsListener: _itemPositionsListener,
-        ),
-      ),
-    );
-  }
-
-  Widget _comicReadAppBar() {
-    return ComicReadAppBar(
-      title: title,
-      isVisible: _isVisible,
-      onThemeModeChanged: () {
-        setting.setThemeMode(0);
-      },
-    );
-  }
-
-  Widget _pageCountWidget() {
-    return PageCountWidget(pageIndex: pageIndex, epPages: epPages);
-  }
-
-  Widget _bottomWidget() {
-    return BottomWidget(
-      comicReadType: widget.comicReadType,
-      chapter: chapter,
-      chapterUUIDList: chapterUUIDList,
-      comicReadJson: comicReadJson,
-      isVisible: _isVisible,
-      comicInfo: comicInfo,
-      stringStore: stringStore,
-      slider: SliderWidget(
-        totalSlots: _totalSlots,
-        currentSliderValue: _currentSliderValue,
-        changeSliderValue: (double newValue) {
-          setState(() => _currentSliderValue = newValue);
-        },
-        changeSliderRollState: (bool newValue) {
-          setState(() => _isSliderRolling = newValue);
-        },
-        changeComicRollState: (bool newValue) {
-          setState(() => _isComicRolling = newValue);
-        },
-        itemScrollController: _itemScrollController,
-      ),
-    );
-  }
-
-  Widget _commentWidget() {
-    return AnimatedPositioned(
-      duration: const Duration(milliseconds: 400),
-      right: _isVisible ? 20 : -60,
-      bottom: MediaQuery.of(context).size.height / 2 - 28,
-      child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 400),
-        opacity: _isVisible ? 1 : 0,
-        child: FloatingActionButton(
-          backgroundColor: materialColorScheme.primaryContainer,
-          elevation: 4,
-          child: Icon(Icons.comment),
-          onPressed: () {
-            AutoRouter.of(context).push(
-              ChapterCommentRoute(chapterName: title, chapterId: chapterId),
+            : _toggleVisibility,
+    onTapDown: (TapDownDetails details) => _tapDownDetails = details,
+    child: InteractiveViewer(
+      key: ValueKey(refresh),
+      boundaryMargin: EdgeInsets.zero,
+      minScale: 1.0,
+      maxScale: 4.0,
+      child: Observer(
+        builder: (context) {
+          if (setting.readMode == 0) {
+            return ColumnList(
+              comicImageUrlList: comicImageUrlList,
+              comicId: comicId,
+              uuid: uuid,
+              itemScrollController: _itemScrollController,
+              itemPositionsListener: _itemPositionsListener,
             );
-          },
-        ),
+          } else {
+            return RowModeWidget(
+              comicImageUrlList: comicImageUrlList,
+              comicId: comicId,
+              uuid: uuid,
+              pageController: _pageController,
+              onPageChanged: (int index) {
+                setState(() {
+                  pageIndex = index + 2;
+                  // logger.d('当前页数：${pageIndex - 1}');
+                  if (!_isComicRolling) {
+                    _currentSliderValue =
+                        (pageIndex).clamp(0, _totalSlots - 1).toDouble() - 1;
+                    _isVisible = false;
+                  }
+                });
+              },
+              isSliderRolling: _isSliderRolling,
+            );
+          }
+        },
       ),
-    );
-  }
+    ),
+  );
+
+  Widget _comicReadAppBar() => ComicReadAppBar(
+    title: title,
+    isVisible: _isVisible,
+    changePageIndex: (int value) {
+      setState(() {
+        _currentSliderValue = 1.0;
+        pageIndex = value;
+        refresh = Uuid().v4();
+      });
+    },
+  );
+
+  Widget _pageCountWidget() =>
+      PageCountWidget(pageIndex: pageIndex, epPages: epPages);
+
+  Widget _bottomWidget() => BottomWidget(
+    comicReadType: widget.comicReadType,
+    chapter: chapter,
+    chapterUUIDList: chapterUUIDList,
+    comicReadJson: comicReadJson,
+    isVisible: _isVisible,
+    comicInfo: comicInfo,
+    stringStore: stringStore,
+    slider: SliderWidget(
+      totalSlots: _totalSlots,
+      currentSliderValue: _currentSliderValue,
+      changeSliderValue: (double newValue) {
+        setState(() => _currentSliderValue = newValue);
+      },
+      changeSliderRollState: (bool newValue) {
+        setState(() => _isSliderRolling = newValue);
+      },
+      changeComicRollState: (bool newValue) {
+        setState(() => _isComicRolling = newValue);
+      },
+      itemScrollController: _itemScrollController,
+      pageController: _pageController,
+    ),
+  );
+
+  Widget _commentWidget() => AnimatedPositioned(
+    duration: const Duration(milliseconds: 400),
+    right: _isVisible ? 20 : -60,
+    bottom: MediaQuery.of(context).size.height / 2 - 28,
+    child: AnimatedOpacity(
+      duration: const Duration(milliseconds: 400),
+      opacity: _isVisible ? 1 : 0,
+      child: FloatingActionButton(
+        backgroundColor: materialColorScheme.primaryContainer,
+        elevation: 4,
+        child: Icon(Icons.comment),
+        onPressed:
+            () => AutoRouter.of(context).push(
+              ChapterCommentRoute(chapterName: title, chapterId: chapterId),
+            ),
+      ),
+    ),
+  );
 
   void _initData(ComicReadState? state) {
     if (_isVisible == false) {
@@ -363,16 +411,25 @@ class __ComicReadPageState extends State<_ComicReadPage> {
       }
 
       _totalSlots = comicImageUrlList.length;
+      init = true;
     }
-    init = true;
 
     if (isHistory && comicHistory!.chapterIndex != 0 && isSkipped == false) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _itemScrollController.scrollTo(
-          index: comicHistory!.chapterIndex,
-          alignment: 0.0,
-          duration: const Duration(milliseconds: 500),
-        );
+        if (setting.readMode == 0) {
+          _itemScrollController.scrollTo(
+            index: comicHistory!.chapterIndex,
+            alignment: 0.0,
+            duration: const Duration(milliseconds: 500),
+          );
+        } else {
+          logger.d(comicHistory!.chapterIndex - 1);
+          _pageController.animateToPage(
+            comicHistory!.chapterIndex - 1,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        }
       });
     }
     isSkipped = true;
@@ -380,7 +437,6 @@ class __ComicReadPageState extends State<_ComicReadPage> {
 
   Future<void> getTopThirdItemIndex(Iterable<ItemPosition> positions) async {
     await updateIndex(positions);
-    await writeToDatabase();
   }
 
   Future<void> updateIndex(Iterable<ItemPosition> positions) async {
@@ -413,6 +469,8 @@ class __ComicReadPageState extends State<_ComicReadPage> {
             DateTime.now().difference(_lastUpdateTime!).inMilliseconds < 100) {
       return;
     }
+
+    // logger.d(pageIndex);
 
     // 更新记录
     _isInserting = true;
@@ -470,6 +528,58 @@ class __ComicReadPageState extends State<_ComicReadPage> {
 
       // 更新记录的滚动索引
       _lastScrollIndex = firstItemIndex;
+    }
+  }
+
+  /// 切换UI可见性
+  void _toggleVisibility() {
+    setState(() => _isVisible = !_isVisible);
+    if (_isVisible) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    }
+  }
+
+  void _handleTap(TapDownDetails details) {
+    // 获取点击的全局坐标
+    final Offset tapPosition = details.globalPosition;
+    // 获取屏幕宽度和高度
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double screenHeight = MediaQuery.of(context).size.height;
+    // 将屏幕宽度分为三等份
+    final double thirdWidth = screenWidth / 3;
+    // 将中间区域的高度分为上面三分之二和下面三分之一
+    final double middleTopHeight = screenHeight * 2 / 3;
+    // final double middleBottomHeight = screenHeight / 3;
+
+    final readMode = setting.readMode == 1 ? true : false;
+
+    // 判断点击区域
+    if (tapPosition.dx < thirdWidth) {
+      // 点击左边三分之一
+      _pageController.animateToPage(
+        readMode ? pageIndex - 3 : pageIndex - 1,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    } else if (tapPosition.dx < 2 * thirdWidth) {
+      // 点击中间三分之一
+      if (tapPosition.dy < middleTopHeight) {
+        _toggleVisibility();
+      } else {
+        // 点击中间三分之一的下面三分之一
+        _pageController.animateToPage(
+          readMode ? pageIndex - 1 : pageIndex - 3,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+    } else {
+      // 点击右边三分之一
+      _pageController.animateToPage(
+        readMode ? pageIndex - 1 : pageIndex - 3,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
     }
   }
 }

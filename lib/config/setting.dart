@@ -44,6 +44,8 @@ abstract class _Setting with Store {
   bool syncNotify = true; // 同步提示
   @observable
   bool shade = true; // 夜间模式遮罩
+  @observable
+  int readMode = 0; // 阅读模式
 
   Future<void> initBox() async {
     if (!Hive.isBoxOpen('settings')) {
@@ -65,6 +67,7 @@ abstract class _Setting with Store {
     autoSync = getAutoSync();
     syncNotify = getSyncNotify();
     shade = getShade();
+    readMode = getReadMode();
   }
 
   @action
@@ -367,6 +370,24 @@ abstract class _Setting with Store {
     shade = true;
     _box.delete(SettingBoxKey.shade);
   }
+
+  @action
+  int getReadMode() {
+    readMode = _box.get(SettingBoxKey.readMode, defaultValue: 0);
+    return readMode;
+  }
+
+  @action
+  void setReadMode(int value) {
+    readMode = value;
+    _box.put(SettingBoxKey.readMode, value);
+  }
+
+  @action
+  void deleteReadMode() {
+    readMode = 0;
+    _box.delete(SettingBoxKey.readMode);
+  }
 }
 
 class SettingBoxKey {
@@ -387,4 +408,5 @@ class SettingBoxKey {
   static const String autoSync = 'autoSync'; // 是否自动同步
   static const String syncNotify = 'syncNotify'; // 自动同步提醒
   static const String shade = 'shade'; // 黑夜模式遮罩
+  static const String readMode = "readMode"; // 阅读模式
 }

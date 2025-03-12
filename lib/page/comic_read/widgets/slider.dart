@@ -13,6 +13,7 @@ class SliderWidget extends StatefulWidget {
   final ValueChanged<bool> changeSliderRollState;
   final ValueChanged<bool> changeComicRollState;
   final ItemScrollController itemScrollController;
+  final PageController pageController;
 
   const SliderWidget({
     super.key,
@@ -22,6 +23,7 @@ class SliderWidget extends StatefulWidget {
     required this.changeSliderRollState,
     required this.changeComicRollState,
     required this.itemScrollController,
+    required this.pageController,
   });
 
   @override
@@ -57,11 +59,20 @@ class _SliderWidgetState extends State<SliderWidget> {
 
   Future<void> _performScroll(double value) async {
     widget.changeComicRollState(true);
-    await widget.itemScrollController.scrollTo(
-      index: value.toInt(),
-      alignment: 0.0,
-      duration: const Duration(milliseconds: 300),
-    );
+    // 滚动到指定的索引
+    if (setting.readMode == 0) {
+      await widget.itemScrollController.scrollTo(
+        index: widget.currentSliderValue.toInt() + 1,
+        alignment: 0.0,
+        duration: const Duration(milliseconds: 300),
+      );
+    } else {
+      await widget.pageController.animateToPage(
+        widget.currentSliderValue.toInt(),
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
   }
 
   void _showOverlayToast(String message) {

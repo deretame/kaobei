@@ -75,18 +75,6 @@ class _BottomWidgetState extends State<BottomWidget> {
     );
   }
 
-  Widget _buildThemeButton(
-    ThemeMode targetMode,
-    IconData activeIcon,
-    IconData inactiveIcon,
-  ) {
-    return IconButton(
-      icon: Icon(setting.themeMode == targetMode ? activeIcon : inactiveIcon),
-      onPressed:
-          () => setting.setThemeMode(targetMode == ThemeMode.dark ? 2 : 1),
-    );
-  }
-
   Future<bool> _showNavigationDialog(String message) async {
     return await showDialog<bool>(
           context: context,
@@ -180,19 +168,21 @@ class _BottomWidgetState extends State<BottomWidget> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        _buildThemeButton(
-                          ThemeMode.light,
-                          Icons.brightness_7,
-                          Icons.brightness_5_outlined,
+                        IconButton(
+                          icon: Icon(Icons.home),
+                          onPressed:
+                              () => AutoRouter.of(context).popUntilRoot(),
                         ),
                         TextButton(
                           onPressed: () => context.maybePop(),
                           child: Text('选择章节', style: _chapterTextStyle),
                         ),
-                        _buildThemeButton(
-                          ThemeMode.dark,
-                          Icons.brightness_2_rounded,
-                          Icons.brightness_2_outlined,
+                        IconButton(
+                          icon: _getThemeIcon(),
+                          onPressed: () {
+                            final nextMode = (setting.themeMode.index + 1) % 3;
+                            setting.setThemeMode(nextMode);
+                          },
                         ),
                       ],
                     ),
@@ -204,5 +194,13 @@ class _BottomWidgetState extends State<BottomWidget> {
         );
       },
     );
+  }
+
+  Icon _getThemeIcon() {
+    return switch (setting.themeMode) {
+      ThemeMode.system => const Icon(Icons.brightness_auto_outlined),
+      ThemeMode.light => const Icon(Icons.brightness_7),
+      ThemeMode.dark => const Icon(Icons.brightness_2_rounded),
+    };
   }
 }

@@ -285,6 +285,21 @@ mixin _$Setting on _Setting, Store {
     });
   }
 
+  late final _$readModeAtom = Atom(name: '_Setting.readMode', context: context);
+
+  @override
+  int get readMode {
+    _$readModeAtom.reportRead();
+    return super.readMode;
+  }
+
+  @override
+  set readMode(int value) {
+    _$readModeAtom.reportWrite(value, super.readMode, () {
+      super.readMode = value;
+    });
+  }
+
   late final _$_SettingActionController = ActionController(
     name: '_Setting',
     context: context,
@@ -867,6 +882,42 @@ mixin _$Setting on _Setting, Store {
   }
 
   @override
+  int getReadMode() {
+    final _$actionInfo = _$_SettingActionController.startAction(
+      name: '_Setting.getReadMode',
+    );
+    try {
+      return super.getReadMode();
+    } finally {
+      _$_SettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void setReadMode(int value) {
+    final _$actionInfo = _$_SettingActionController.startAction(
+      name: '_Setting.setReadMode',
+    );
+    try {
+      return super.setReadMode(value);
+    } finally {
+      _$_SettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void deleteReadMode() {
+    final _$actionInfo = _$_SettingActionController.startAction(
+      name: '_Setting.deleteReadMode',
+    );
+    try {
+      return super.deleteReadMode();
+    } finally {
+      _$_SettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   String toString() {
     return '''
 dynamicColor: ${dynamicColor},
@@ -884,7 +935,8 @@ webdavUsername: ${webdavUsername},
 webdavPassword: ${webdavPassword},
 autoSync: ${autoSync},
 syncNotify: ${syncNotify},
-shade: ${shade}
+shade: ${shade},
+readMode: ${readMode}
     ''';
   }
 }

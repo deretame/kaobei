@@ -13,6 +13,7 @@ class ImageWidget extends StatefulWidget {
   final String cartoonId;
   final String chapterId;
   final int index;
+  final bool isColumn;
 
   const ImageWidget({
     super.key,
@@ -20,6 +21,7 @@ class ImageWidget extends StatefulWidget {
     required this.cartoonId,
     required this.chapterId,
     required this.index,
+    required this.isColumn,
   });
 
   @override
@@ -60,7 +62,7 @@ class _ImageWidgetState extends State<ImageWidget>
           switch (state.status) {
             case PictureLoadStatus.initial:
               return Container(
-                color: Color(0xFF2D2D2D),
+                color: widget.isColumn ? Color(0xFF2D2D2D) : Colors.black,
                 width: screenWidth,
                 height: screenWidth,
                 child: Center(
@@ -84,12 +86,15 @@ class _ImageWidgetState extends State<ImageWidget>
                     ),
                   );
                 },
-                child: ImageDisplay(imagePath: state.imagePath!),
+                child: ImageDisplay(
+                  imagePath: state.imagePath!,
+                  isColumn: widget.isColumn,
+                ),
               );
             case PictureLoadStatus.failure:
               if (state.result.toString().contains('404')) {
                 return Container(
-                  color: Color(0xFF2D2D2D),
+                  color: widget.isColumn ? Color(0xFF2D2D2D) : Colors.black,
                   width: screenWidth,
                   height: screenWidth,
                   child: Center(
@@ -98,7 +103,7 @@ class _ImageWidgetState extends State<ImageWidget>
                 );
               } else {
                 return Container(
-                  color: Color(0xFF2D2D2D),
+                  color: widget.isColumn ? Color(0xFF2D2D2D) : Colors.black,
                   width: screenWidth,
                   height: screenWidth,
                   child: InkWell(
@@ -129,8 +134,13 @@ class _ImageWidgetState extends State<ImageWidget>
 
 class ImageDisplay extends StatefulWidget {
   final String imagePath;
+  final bool isColumn;
 
-  const ImageDisplay({super.key, required this.imagePath});
+  const ImageDisplay({
+    super.key,
+    required this.imagePath,
+    required this.isColumn,
+  });
 
   @override
   State<ImageDisplay> createState() => _ImageDisplayState();
@@ -174,9 +184,11 @@ class _ImageDisplayState extends State<ImageDisplay> {
               ? (imageHeight * (screenWidth / imageWidth))
               : screenWidth,
       child:
-          imageWidth != screenWidth && imageHeight != screenWidth
-              ? Image.file(File(widget.imagePath), fit: BoxFit.fill)
-              : Container(color: const Color(0xFF2D2D2D)), // 占位符
+          widget.isColumn
+              ? imageWidth != screenWidth && imageHeight != screenWidth
+                  ? Image.file(File(widget.imagePath), fit: BoxFit.fill)
+                  : Container(color: const Color(0xFF2D2D2D))
+              : Image.file(File(widget.imagePath), fit: BoxFit.contain),
     );
   }
 }
