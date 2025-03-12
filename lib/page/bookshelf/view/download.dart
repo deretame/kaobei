@@ -2,12 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kaobei/page/bookshelf/bookshelf.dart';
 
+import '../../../main.dart';
+import '../../../mobx/int_store.dart';
+import '../../../mobx/string_store.dart';
 import '../../comic_info/models/comic_info.dart';
 
 class DownloadPage extends StatelessWidget {
   final ScrollController scrollController;
+  final StringStore stringSelectStore;
+  final IntStore intSelectStore;
+  final SearchEnterStore searchEnterStore;
 
-  const DownloadPage({super.key, required this.scrollController});
+  const DownloadPage({
+    super.key,
+    required this.scrollController,
+    required this.stringSelectStore,
+    required this.intSelectStore,
+    required this.searchEnterStore,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -16,19 +28,35 @@ class DownloadPage extends StatelessWidget {
         return DownloadBloc()..add(
           DownloadEvent(
             DownloadStatus.initial,
-            SearchEnter(keyword: '', sortType: SortType.none),
+            SearchEnter(
+              keyword: searchEnterStore.keyword,
+              sortType: searchEnterStore.sortType,
+            ),
           ),
         );
       },
-      child: _DownloadPage(scrollController: scrollController),
+      child: _DownloadPage(
+        scrollController: scrollController,
+        stringSelectStore: stringSelectStore,
+        intSelectStore: intSelectStore,
+        searchEnterStore: searchEnterStore,
+      ),
     );
   }
 }
 
 class _DownloadPage extends StatefulWidget {
   final ScrollController scrollController;
+  final StringStore stringSelectStore;
+  final IntStore intSelectStore;
+  final SearchEnterStore searchEnterStore;
 
-  const _DownloadPage({required this.scrollController});
+  const _DownloadPage({
+    required this.scrollController,
+    required this.stringSelectStore,
+    required this.intSelectStore,
+    required this.searchEnterStore,
+  });
 
   @override
   State<_DownloadPage> createState() => _DownloadPageState();
@@ -36,10 +64,26 @@ class _DownloadPage extends StatefulWidget {
 
 class _DownloadPageState extends State<_DownloadPage>
     with AutomaticKeepAliveClientMixin {
-  ScrollController get scrollController => widget.scrollController;
-
   @override
   bool get wantKeepAlive => true;
+
+  late SearchEnterStore searchEnterStore;
+  late ScrollController scrollController;
+  String totalComicCount = '';
+
+  @override
+  void initState() {
+    super.initState();
+    searchEnterStore = widget.searchEnterStore;
+    scrollController = widget.scrollController;
+    eventBus.on<DownloadEventBus>().listen((event) {
+      if (event.type == EventType.showInfo) {
+        widget.stringSelectStore.setDate(totalComicCount);
+      } else if (event.type == EventType.refresh) {
+        updateComicList();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +125,10 @@ class _DownloadPageState extends State<_DownloadPage>
               context.read<DownloadBloc>().add(
                 DownloadEvent(
                   DownloadStatus.initial,
-                  SearchEnter(keyword: '', sortType: SortType.none),
+                  SearchEnter(
+                    keyword: searchEnterStore.keyword,
+                    sortType: searchEnterStore.sortType,
+                  ),
                 ),
               );
             },
@@ -93,36 +140,35 @@ class _DownloadPageState extends State<_DownloadPage>
   }
 
   Widget _successWidget(DownloadState state) {
-    // 处理下拉刷新的函数
-    Future<void> onRefresh() async {
-      context.read<DownloadBloc>().add(
-        DownloadEvent(
-          DownloadStatus.initial,
-          SearchEnter(keyword: '', sortType: SortType.none),
-        ),
-      );
-    }
-
     if (state.comicList!.isEmpty) {
       return Center(
         child: Column(
           children: [
             Spacer(),
-            Text('还没有下载的漫画哦~', style: TextStyle(fontSize: 22)),
+            Text('啥都没有', style: TextStyle(fontSize: 22)),
             IconButton(
-              onPressed:
-                  () => context.read<DownloadBloc>().add(
-                    DownloadEvent(
-                      DownloadStatus.initial,
-                      SearchEnter(keyword: '', sortType: SortType.none),
+              onPressed: () {
+                context.read<DownloadBloc>().add(
+                  DownloadEvent(
+                    DownloadStatus.initial,
+                    SearchEnter(
+                      keyword: searchEnterStore.keyword,
+                      sortType: searchEnterStore.sortType,
                     ),
                   ),
+                );
+              },
               icon: Icon(Icons.refresh),
             ),
             Spacer(),
           ],
         ),
       );
+    }
+
+    totalComicCount = state.comicList!.length.toString();
+    if (widget.intSelectStore.date == 2) {
+      widget.stringSelectStore.setDate(totalComicCount);
     }
 
     var temp = generateElements(state.comicList!);
@@ -146,6 +192,30 @@ class _DownloadPageState extends State<_DownloadPage>
           );
         },
         controller: scrollController,
+      ),
+    );
+  }
+
+  Future<void> onRefresh() async {
+    context.read<DownloadBloc>().add(
+      DownloadEvent(
+        DownloadStatus.initial,
+        SearchEnter(
+          keyword: searchEnterStore.keyword,
+          sortType: searchEnterStore.sortType,
+        ),
+      ),
+    );
+  }
+
+  Future<void> updateComicList() async {
+    context.read<DownloadBloc>().add(
+      DownloadEvent(
+        DownloadStatus.refresh,
+        SearchEnter(
+          keyword: searchEnterStore.keyword,
+          sortType: searchEnterStore.sortType,
+        ),
       ),
     );
   }

@@ -173,71 +173,7 @@ class _EpsWidgetState extends State<_EpsWidget>
     }
 
     return SliverStickyHeader(
-      header: GestureDetector(
-        onTap: () {
-          setState(() {
-            isExpanded = !isExpanded;
-            if (isExpanded) {
-              _animationController.reverse(); // 顺时针旋转回去
-            } else {
-              _animationController.forward(); // 逆时针旋转
-            }
-          });
-        },
-        child: Observer(
-          builder:
-              (context) => Container(
-                padding: EdgeInsets.all(10),
-                color:
-                    setting.isLightTheme || !setting.isAMOLED
-                        ? setting.backgroundColor
-                        : Colors.black,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: setting.backgroundColor,
-                    borderRadius: BorderRadius.circular(5),
-                    boxShadow: [
-                      BoxShadow(
-                        color: materialColorScheme.secondary,
-                        blurRadius: 1,
-                      ),
-                    ],
-                  ),
-                  height: 47,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(width: 10),
-                      Text(group.name, style: TextStyle(fontSize: 18)),
-                      Spacer(),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: materialColorScheme.secondaryContainer,
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        padding: const EdgeInsets.all(4),
-                        child: AnimatedBuilder(
-                          animation: _rotationAnimation,
-                          builder: (context, child) {
-                            return Transform.rotate(
-                              angle: _rotationAnimation.value * (3.14 / 180),
-                              // 将角度转换为弧度
-                              child: Icon(
-                                Icons.keyboard_arrow_down,
-                                size: 24,
-                                color: materialColorScheme.primary,
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                    ],
-                  ),
-                ),
-              ),
-        ),
-      ),
+      header: _buildHeader(),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
           (context, i) {
@@ -290,6 +226,73 @@ class _EpsWidgetState extends State<_EpsWidget>
             child: Text('重试'),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          isExpanded = !isExpanded;
+          if (isExpanded) {
+            _animationController.reverse(); // 顺时针旋转回去
+          } else {
+            _animationController.forward(); // 逆时针旋转
+          }
+        });
+      },
+      child: Observer(
+        builder:
+            (context) => Container(
+              padding: EdgeInsets.all(10),
+              color:
+                  setting.isLightTheme || !setting.isAMOLED
+                      ? setting.backgroundColor
+                      : Colors.black,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: setting.backgroundColor,
+                  borderRadius: BorderRadius.circular(5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: materialColorScheme.secondary,
+                      blurRadius: 1,
+                    ),
+                  ],
+                ),
+                height: 47,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(width: 10),
+                    Text(group.name, style: TextStyle(fontSize: 18)),
+                    Spacer(),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: materialColorScheme.secondaryContainer,
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      padding: const EdgeInsets.all(4),
+                      child: AnimatedBuilder(
+                        animation: _rotationAnimation,
+                        builder: (context, child) {
+                          return Transform.rotate(
+                            angle: _rotationAnimation.value * (3.14 / 180),
+                            child: Icon(
+                              Icons.keyboard_arrow_down,
+                              size: 24,
+                              color: materialColorScheme.primary,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                  ],
+                ),
+              ),
+            ),
       ),
     );
   }

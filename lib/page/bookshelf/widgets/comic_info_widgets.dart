@@ -95,7 +95,7 @@ class _ElementInfoWidgetState extends State<ElementInfoWidget> {
       context.read<FavoriteBloc>().add(
         FavoriteEvent(
           FavoriteStatus.refresh,
-          SearchEnter(keyword: '', sortType: SortType.none),
+          SearchEnter(keyword: '', sortType: 2),
         ),
       );
     }
@@ -114,7 +114,7 @@ class _ElementInfoWidgetState extends State<ElementInfoWidget> {
       context.read<HistoryBloc>().add(
         HistoryEvent(
           HistoryStatus.refresh,
-          SearchEnter(keyword: '', sortType: SortType.none),
+          SearchEnter(keyword: '', sortType: 2),
         ),
       );
     }
@@ -145,7 +145,7 @@ class _ElementInfoWidgetState extends State<ElementInfoWidget> {
       context.read<DownloadBloc>().add(
         DownloadEvent(
           DownloadStatus.refresh,
-          SearchEnter(keyword: '', sortType: SortType.none),
+          SearchEnter(keyword: '', sortType: 2),
         ),
       );
     }

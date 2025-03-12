@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:kaobei/config/config.dart';
 import 'package:kaobei/page/comic_info/comic_info.dart';
 import 'package:kaobei/page/comic_info/json/comic_all_info_json/comic_all_info_json.dart'
@@ -87,103 +86,95 @@ class _ComicInfoPageState extends State<_ComicInfoPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Observer(
-      builder:
-          (context) => Scaffold(
-            appBar: AppBar(
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => AutoRouter.of(context).maybePop(),
-              ),
-              actions: <Widget>[
-                const SizedBox(width: 50),
-                IconButton(
-                  icon: const Icon(Icons.home),
-                  onPressed: () => AutoRouter.of(context).popUntilRoot(),
-                ),
-                Spacer(),
-                if (widget.comicReadType == ComicReadType.download) ...[
-                  IconButton(
-                    icon: const Icon(Icons.upload),
-                    onPressed: () async {
-                      try {
-                        if (!await Permission.manageExternalStorage
-                            .request()
-                            .isGranted) {
-                          showErrorToast("请授予存储权限！");
-                          return;
-                        }
-                        if (mounted) {
-                          var choice = await showExportTypeDialog();
-                          if (choice == ExportType.zip) {
-                            showInfoToast('正在导出漫画...');
-                            exportComicAsZip(
-                              comicAllInfoJson!,
-                              comicInfoJsonStr,
-                            );
-                          } else if (choice == ExportType.folder) {
-                            showInfoToast('正在导出漫画...');
-                            exportComicAsFolder(
-                              comicAllInfoJson!,
-                              comicInfoJsonStr,
-                            );
-                          } else {
-                            return;
-                          }
-                        }
-                      } catch (e) {
-                        showErrorToast(
-                          "导出失败，请重试。\n${e.toString()}",
-                          duration: const Duration(seconds: 5),
-                        );
-                      }
-                    },
-                  ),
-                ],
-              ],
-            ),
-            body: body(),
-            floatingActionButton:
-                stringStore.date.isNotEmpty && showFloatingButton
-                    ? SizedBox(
-                      width: 100, // 设置容器宽度，以容纳更长的文本
-                      height: 56, // 设置容器高度，与默认的FloatingActionButton高度一致
-                      child: FloatingActionButton(
-                        onPressed: () {
-                          ComicReadType comicReadType = widget.comicReadType;
-                          if (comicReadType == ComicReadType.download) {
-                            comicReadType = ComicReadType.historyAndDownload;
-                          } else {
-                            comicReadType = ComicReadType.history;
-                          }
-                          var uuid =
-                              objectbox.historyBox
-                                  .query(ComicHistory_.pathWord.equals(comicId))
-                                  .build()
-                                  .findFirst()!
-                                  .chapterId;
-                          if (comicReadType == ComicReadType.download) {
-                            comicReadType = ComicReadType.historyAndDownload;
-                          }
-                          AutoRouter.of(context).push(
-                            ComicReadRoute(
-                              comicInfo: comicInfo!.info,
-                              chapterId: uuid,
-                              stringStore: stringStore,
-                              comicReadType: comicReadType,
-                            ),
-                          );
-                        },
-                        child: Text(
-                          '继续阅读',
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                      ),
-                    )
-                    : null,
-          ),
+    return Scaffold(
+      appBar: _appBar(),
+      body: body(),
+      floatingActionButton: _floatingButton(),
     );
+  }
+
+  AppBar _appBar() {
+    return AppBar(
+      actions: <Widget>[
+        const SizedBox(width: 50),
+        IconButton(
+          icon: const Icon(Icons.home),
+          onPressed: () => AutoRouter.of(context).popUntilRoot(),
+        ),
+        Spacer(),
+        if (widget.comicReadType == ComicReadType.download) _exportIcon(),
+      ],
+    );
+  }
+
+  Widget _exportIcon() {
+    return IconButton(
+      icon: const Icon(Icons.upload),
+      onPressed: () async {
+        try {
+          if (!await Permission.manageExternalStorage.request().isGranted) {
+            showErrorToast("请授予存储权限！");
+            return;
+          }
+          if (mounted) {
+            var choice = await showExportTypeDialog();
+            if (choice == ExportType.zip) {
+              showInfoToast('正在导出漫画...');
+              exportComicAsZip(comicAllInfoJson!, comicInfoJsonStr);
+            } else if (choice == ExportType.folder) {
+              showInfoToast('正在导出漫画...');
+              exportComicAsFolder(comicAllInfoJson!, comicInfoJsonStr);
+            } else {
+              return;
+            }
+          }
+        } catch (e) {
+          showErrorToast(
+            "导出失败，请重试。\n${e.toString()}",
+            duration: const Duration(seconds: 5),
+          );
+        }
+      },
+    );
+  }
+
+  Widget? _floatingButton() {
+    if (stringStore.date.isNotEmpty && showFloatingButton) {
+      return SizedBox(
+        width: 100, // 设置容器宽度，以容纳更长的文本
+        height: 56, // 设置容器高度，与默认的FloatingActionButton高度一致
+        child: FloatingActionButton(
+          onPressed: () {
+            ComicReadType comicReadType = widget.comicReadType;
+            if (comicReadType == ComicReadType.download) {
+              comicReadType = ComicReadType.historyAndDownload;
+            } else {
+              comicReadType = ComicReadType.history;
+            }
+            var uuid =
+                objectbox.historyBox
+                    .query(ComicHistory_.pathWord.equals(comicId))
+                    .build()
+                    .findFirst()!
+                    .chapterId;
+            if (comicReadType == ComicReadType.download) {
+              comicReadType = ComicReadType.historyAndDownload;
+            }
+            AutoRouter.of(context).push(
+              ComicReadRoute(
+                comicInfo: comicInfo!.info,
+                chapterId: uuid,
+                stringStore: stringStore,
+                comicReadType: comicReadType,
+              ),
+            );
+          },
+          child: Text('继续阅读', overflow: TextOverflow.ellipsis, maxLines: 1),
+        ),
+      );
+    }
+
+    return null;
   }
 
   Widget body() {

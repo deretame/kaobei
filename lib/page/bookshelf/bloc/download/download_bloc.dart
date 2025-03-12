@@ -36,6 +36,17 @@ class DownloadBloc extends Bloc<DownloadEvent, DownloadState> {
       var comicList = await objectbox.downloadBox.getAllAsync();
 
       comicList = comicList.where((e) => e.deleted != true).toList();
+
+      if (event.searchEnter.keyword.isNotEmpty) {
+        comicList =
+            comicList.where((e) {
+              final info = e.name + e.alias + e.author + e.description;
+              return info.toLowerCase().contains(
+                event.searchEnter.keyword.toLowerCase(),
+              );
+            }).toList();
+      }
+
       comicList.sort((a, b) => b.downloadTime.compareTo(a.downloadTime));
 
       var temp =

@@ -36,6 +36,17 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
       var comicList = await objectbox.collectBox.getAllAsync();
 
       comicList = comicList.where((e) => e.deleted != true).toList();
+
+      if (event.searchEnter.keyword.isNotEmpty) {
+        comicList =
+            comicList.where((e) {
+              final info = e.name + e.alias + e.author + e.description;
+              return info.toLowerCase().contains(
+                event.searchEnter.keyword.toLowerCase(),
+              );
+            }).toList();
+      }
+
       comicList.sort((a, b) => b.collectTime.compareTo(a.collectTime));
 
       var temp =

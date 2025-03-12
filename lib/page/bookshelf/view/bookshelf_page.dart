@@ -1,7 +1,11 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:kaobei/main.dart';
 import 'package:kaobei/page/bookshelf/bookshelf.dart';
 
+import '../../../mobx/int_store.dart';
+import '../../../mobx/string_store.dart';
 import '../../../router/router.gr.dart';
 
 @RoutePage()
@@ -32,6 +36,11 @@ class _BookShelfState extends State<BookShelf> with TickerProviderStateMixin {
       widget.downloadScrollController;
 
   late final TabController _tabController;
+  final StringStore stringSelectStore = StringStore();
+  final IntStore intSelectStore = IntStore();
+  final SearchEnterStore favorSearchEnterStore = SearchEnterStore();
+  final SearchEnterStore historySearchEnterStore = SearchEnterStore();
+  final SearchEnterStore downloadSearchEnterStore = SearchEnterStore();
 
   int _currentIndex = 0;
 
@@ -41,6 +50,14 @@ class _BookShelfState extends State<BookShelf> with TickerProviderStateMixin {
     _tabController = TabController(length: 3, vsync: this)..addListener(() {
       if (_tabController.index != _currentIndex) {
         _currentIndex = _tabController.index;
+        intSelectStore.setDate(_currentIndex);
+        if (_currentIndex == 0) {
+          eventBus.fire(FavoriteEventBus(EventType.showInfo));
+        } else if (_currentIndex == 1) {
+          eventBus.fire(HistoryEventBus(EventType.showInfo));
+        } else if (_currentIndex == 2) {
+          eventBus.fire(DownloadEventBus(EventType.showInfo));
+        }
       }
     });
   }
@@ -78,10 +95,17 @@ class _BookShelfState extends State<BookShelf> with TickerProviderStateMixin {
                   ],
                 ),
               ),
-              // Spacer(),
+              Observer(
+                builder: (context) {
+                  return SizedBox(
+                    width: 120,
+                    child: Center(child: Text(stringSelectStore.date)),
+                  );
+                },
+              ),
               Builder(
                 builder: (BuildContext context) {
-                  return SizedBox.shrink();
+                  // return SizedBox.shrink();
                   return IconButton(
                     icon: const Icon(Icons.sort),
                     onPressed: () {
@@ -94,44 +118,32 @@ class _BookShelfState extends State<BookShelf> with TickerProviderStateMixin {
           ),
         ),
       ),
-      endDrawer: const SideDrawer(),
+      endDrawer: SideDrawer(
+        indexStore: intSelectStore,
+        favoriteStore: favorSearchEnterStore,
+        historyStore: historySearchEnterStore,
+        downloadStore: downloadSearchEnterStore,
+      ),
       body: TabBarView(
         controller: _tabController,
         children: [
-          FavoritePage(scrollController: collectScrollController),
-          HistoryPage(scrollController: historyScrollController),
-          DownloadPage(scrollController: downloadScrollController),
-        ],
-      ),
-    );
-  }
-}
-
-class SideDrawer extends StatelessWidget {
-  const SideDrawer({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          const DrawerHeader(
-            decoration: BoxDecoration(color: Colors.blue),
-            child: Text(
-              'Drawer Header',
-              style: TextStyle(color: Colors.white, fontSize: 24),
-            ),
+          FavoritePage(
+            scrollController: collectScrollController,
+            stringSelectStore: stringSelectStore,
+            intSelectStore: intSelectStore,
+            searchEnterStore: favorSearchEnterStore,
           ),
-          ListTile(
-            leading: const Icon(Icons.home),
-            title: const Text('Home'),
-            onTap: () => Navigator.pop(context),
+          HistoryPage(
+            scrollController: historyScrollController,
+            stringSelectStore: stringSelectStore,
+            intSelectStore: intSelectStore,
+            searchEnterStore: historySearchEnterStore,
           ),
-          ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text('Settings'),
-            onTap: () => Navigator.pop(context),
+          DownloadPage(
+            scrollController: downloadScrollController,
+            stringSelectStore: stringSelectStore,
+            intSelectStore: intSelectStore,
+            searchEnterStore: downloadSearchEnterStore,
           ),
         ],
       ),

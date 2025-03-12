@@ -2,12 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kaobei/page/bookshelf/bookshelf.dart';
 
+import '../../../main.dart';
+import '../../../mobx/int_store.dart';
+import '../../../mobx/string_store.dart';
 import '../../comic_info/models/comic_info.dart';
 
 class FavoritePage extends StatelessWidget {
   final ScrollController scrollController;
+  final StringStore stringSelectStore;
+  final IntStore intSelectStore;
+  final SearchEnterStore searchEnterStore;
 
-  const FavoritePage({super.key, required this.scrollController});
+  const FavoritePage({
+    super.key,
+    required this.scrollController,
+    required this.stringSelectStore,
+    required this.intSelectStore,
+    required this.searchEnterStore,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,18 +29,34 @@ class FavoritePage extends StatelessWidget {
               FavoriteBloc()..add(
                 FavoriteEvent(
                   FavoriteStatus.initial,
-                  SearchEnter(keyword: '', sortType: SortType.none),
+                  SearchEnter(
+                    keyword: searchEnterStore.keyword,
+                    sortType: searchEnterStore.sortType,
+                  ),
                 ),
               ),
-      child: _FavoritePage(scrollController: scrollController),
+      child: _FavoritePage(
+        scrollController: scrollController,
+        stringSelectStore: stringSelectStore,
+        intSelectStore: intSelectStore,
+        searchEnterStore: searchEnterStore,
+      ),
     );
   }
 }
 
 class _FavoritePage extends StatefulWidget {
   final ScrollController scrollController;
+  final StringStore stringSelectStore;
+  final IntStore intSelectStore;
+  final SearchEnterStore searchEnterStore;
 
-  const _FavoritePage({required this.scrollController});
+  const _FavoritePage({
+    required this.scrollController,
+    required this.stringSelectStore,
+    required this.intSelectStore,
+    required this.searchEnterStore,
+  });
 
   @override
   State<_FavoritePage> createState() => _FavoritePageState();
@@ -36,10 +64,26 @@ class _FavoritePage extends StatefulWidget {
 
 class _FavoritePageState extends State<_FavoritePage>
     with AutomaticKeepAliveClientMixin {
-  ScrollController get scrollController => widget.scrollController;
-
   @override
   bool get wantKeepAlive => true;
+
+  late SearchEnterStore searchEnterStore;
+  late ScrollController scrollController;
+  String totalComicCount = '';
+
+  @override
+  void initState() {
+    super.initState();
+    searchEnterStore = widget.searchEnterStore;
+    scrollController = widget.scrollController;
+    eventBus.on<FavoriteEventBus>().listen((event) {
+      if (event.type == EventType.showInfo) {
+        widget.stringSelectStore.setDate(totalComicCount);
+      } else if (event.type == EventType.refresh) {
+        updateComicList();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +125,10 @@ class _FavoritePageState extends State<_FavoritePage>
               context.read<FavoriteBloc>().add(
                 FavoriteEvent(
                   FavoriteStatus.initial,
-                  SearchEnter(keyword: '', sortType: SortType.none),
+                  SearchEnter(
+                    keyword: searchEnterStore.keyword,
+                    sortType: searchEnterStore.sortType,
+                  ),
                 ),
               );
             },
@@ -93,36 +140,35 @@ class _FavoritePageState extends State<_FavoritePage>
   }
 
   Widget _successWidget(FavoriteState state) {
-    // 处理下拉刷新的函数
-    Future<void> onRefresh() async {
-      context.read<FavoriteBloc>().add(
-        FavoriteEvent(
-          FavoriteStatus.initial,
-          SearchEnter(keyword: '', sortType: SortType.none),
-        ),
-      );
-    }
-
     if (state.comicList!.isEmpty) {
       return Center(
         child: Column(
           children: [
             Spacer(),
-            Text('还没有收藏的漫画哦~', style: TextStyle(fontSize: 22)),
+            Text('啥都没有~', style: TextStyle(fontSize: 22)),
             IconButton(
-              onPressed:
-                  () => context.read<FavoriteBloc>().add(
-                    FavoriteEvent(
-                      FavoriteStatus.initial,
-                      SearchEnter(keyword: '', sortType: SortType.none),
+              onPressed: () {
+                context.read<FavoriteBloc>().add(
+                  FavoriteEvent(
+                    FavoriteStatus.initial,
+                    SearchEnter(
+                      keyword: searchEnterStore.keyword,
+                      sortType: searchEnterStore.sortType,
                     ),
                   ),
+                );
+              },
               icon: Icon(Icons.refresh),
             ),
             Spacer(),
           ],
         ),
       );
+    }
+
+    totalComicCount = state.comicList!.length.toString();
+    if (widget.intSelectStore.date == 0) {
+      widget.stringSelectStore.setDate(totalComicCount);
     }
 
     var temp = generateElements(state.comicList!);
@@ -145,6 +191,30 @@ class _FavoritePageState extends State<_FavoritePage>
           );
         },
         controller: scrollController,
+      ),
+    );
+  }
+
+  Future<void> onRefresh() async {
+    context.read<FavoriteBloc>().add(
+      FavoriteEvent(
+        FavoriteStatus.initial,
+        SearchEnter(
+          keyword: searchEnterStore.keyword,
+          sortType: searchEnterStore.sortType,
+        ),
+      ),
+    );
+  }
+
+  Future<void> updateComicList() async {
+    context.read<FavoriteBloc>().add(
+      FavoriteEvent(
+        FavoriteStatus.refresh,
+        SearchEnter(
+          keyword: searchEnterStore.keyword,
+          sortType: searchEnterStore.sortType,
+        ),
       ),
     );
   }
