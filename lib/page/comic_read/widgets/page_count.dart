@@ -21,6 +21,7 @@ class _PageCountWidgetState extends State<PageCountWidget> {
   late StreamSubscription<List<ConnectivityResult>> _connectivitySubscription;
   ConnectivityResult _connectivityResult = ConnectivityResult.none;
   String _currentTime = '';
+  Timer? _timer;
 
   @override
   void initState() {
@@ -39,6 +40,8 @@ class _PageCountWidgetState extends State<PageCountWidget> {
   @override
   void dispose() {
     _connectivitySubscription.cancel();
+    _timer?.cancel();
+    _timer = null;
     super.dispose();
   }
 
@@ -90,7 +93,7 @@ class _PageCountWidgetState extends State<PageCountWidget> {
 
   // 启动定时器，每秒更新时间
   void _startTimer() {
-    Timer.periodic(Duration(seconds: 1), (timer) {
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       if (mounted) {
         final now = DateTime.now();
         final formattedTime =
@@ -100,6 +103,8 @@ class _PageCountWidgetState extends State<PageCountWidget> {
             _currentTime = formattedTime;
           });
         }
+      } else {
+        timer.cancel();
       }
     });
   }

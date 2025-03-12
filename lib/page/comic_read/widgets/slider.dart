@@ -38,6 +38,7 @@ class _SliderWidgetState extends State<SliderWidget> {
   @override
   void dispose() {
     _scrollTimer?.cancel();
+    _scrollTimer = null;
     _removeOverlay();
     super.dispose();
   }

@@ -104,8 +104,6 @@ class __ComicReadPageState extends State<_ComicReadPage> {
   int _totalSlots = 0; // 总槽位数量
   bool _isSliderRolling = false; // 滑块是否在滑动
   bool _isComicRolling = false; // 漫画本身是否在滚动
-  bool _isInserting = false; // 检测数据插入状态
-  DateTime? _lastUpdateTime; // 记录上次更新时间
   late ComicHistory? comicHistory; // 记录漫画阅读历史
   late comic_all_info_json.ComicAllInfoJson
   comicAllInfoJson; // 记录漫画全部信息，只有从下载列表过来才会有
@@ -118,6 +116,7 @@ class __ComicReadPageState extends State<_ComicReadPage> {
   String refresh = ""; // 用来重建图片列表
   Timer? _timer; // 定时器，定时存储阅读记录
   TapDownDetails? _tapDownDetails; // 保存点击信息
+  bool havaError = true; // 记录是否有错误
 
   @override
   void initState() {
@@ -174,6 +173,10 @@ class __ComicReadPageState extends State<_ComicReadPage> {
 
       await Future.delayed(Duration(seconds: 1));
       _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
+        if (!mounted) {
+          timer.cancel(); // 如果页面已销毁，取消定时器
+          return;
+        }
         writeToDatabase();
       });
     });
@@ -184,6 +187,7 @@ class __ComicReadPageState extends State<_ComicReadPage> {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     _pageController.dispose();
     _timer?.cancel();
+    _timer = null;
     super.dispose();
   }
 
@@ -412,6 +416,7 @@ class __ComicReadPageState extends State<_ComicReadPage> {
 
       _totalSlots = comicImageUrlList.length;
       init = true;
+      havaError = false;
     }
 
     if (isHistory && comicHistory!.chapterIndex != 0 && isSkipped == false) {
@@ -464,16 +469,11 @@ class __ComicReadPageState extends State<_ComicReadPage> {
   }
 
   Future<void> writeToDatabase() async {
-    if (_isInserting ||
-        _lastUpdateTime != null &&
-            DateTime.now().difference(_lastUpdateTime!).inMilliseconds < 100) {
+    if (havaError) {
       return;
     }
 
-    // logger.d(pageIndex);
-
     // 更新记录
-    _isInserting = true;
     comicHistory!
       ..deleted = false
       ..deleteTime = DateTime(2000, 1, 1, 0, 0, 0).toUtc()
@@ -485,9 +485,6 @@ class __ComicReadPageState extends State<_ComicReadPage> {
     stringStore.setDate(
       "${comicHistory!.chapterName}(${comicHistory!.chapterIndex})——${comicHistory!.lastViewingTime.toString().substring(0, 19)}",
     );
-
-    _isInserting = false;
-    _lastUpdateTime = DateTime.now();
   }
 
   /// 找到最接近屏幕三分之一位置的项
