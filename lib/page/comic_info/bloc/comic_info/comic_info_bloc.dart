@@ -40,6 +40,8 @@ class ComicInfoBloc extends Bloc<ComicInfoEvent, ComicInfoState> {
     try {
       final result = await getComicInfo(event.comicId);
 
+      result['results']['comic']['datetime_updated'] ??= "2018-08-14";
+
       final temp = json.encode(replaceNestedNull(result));
 
       final comicInfo = ComicInfo.fromJson(json.decode(temp));
