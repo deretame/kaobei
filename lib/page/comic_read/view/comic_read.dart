@@ -119,6 +119,7 @@ class __ComicReadPageState extends State<_ComicReadPage> {
   bool havaError = true; // 记录是否有错误
   final TransformationController _transformationController =
       TransformationController();
+  double scale = 1.0;
   bool _isScaling = false; // 是否正在双指缩放
 
   @override
@@ -306,7 +307,7 @@ class __ComicReadPageState extends State<_ComicReadPage> {
         if (_isScaling) {
           // 仅在双指缩放时更新缩放比例
           setState(() {
-            _scale = _transformationController.value.getMaxScaleOnAxis();
+            scale = _transformationController.value.getMaxScaleOnAxis();
           });
         } else {
           // 非双指手势时，重置缩放比例

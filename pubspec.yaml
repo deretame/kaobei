@@ -93,6 +93,7 @@ dev_dependencies:
   auto_route_generator: ^9.0.0    # 路由代码生成器
   hive_ce_generator: ^1.8.1       # hive_ce 模型生成器
   objectbox_generator: ^4.0.3     # ObjectBox 模型生成器
+  msix: ^3.16.8
 
 flutter:
   uses-material-design: true
