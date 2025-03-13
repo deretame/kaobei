@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -20,8 +22,26 @@ class ObjectBox {
   }
 
   static Future<ObjectBox> create() async {
-    final docsDir = await getApplicationDocumentsDirectory();
-    final store = await openStore(directory: p.join(docsDir.path, "breeze_db"));
+    Directory baseDir;
+    if (Platform.isAndroid) {
+      // Android: 使用应用文档目录
+      baseDir = await getApplicationDocumentsDirectory();
+    } else if (Platform.isWindows) {
+      // Windows: 使用应用本身的目录下的 data 目录
+      final executablePath = Platform.resolvedExecutable;
+      final appDir = Directory(p.dirname(executablePath));
+      baseDir = Directory(p.join(appDir.path, 'data'));
+      // 确保 data 目录存在
+      if (!await baseDir.exists()) {
+        await baseDir.create(recursive: true);
+      }
+    } else {
+      throw UnsupportedError(
+        'Unsupported platform: ${Platform.operatingSystem}',
+      );
+    }
+    // 打开 Store
+    final store = await openStore(directory: p.join(baseDir.path, 'breeze_db'));
     return ObjectBox._create(store);
   }
 
