@@ -72,6 +72,8 @@ abstract class _Setting with Store {
     syncNotify = getSyncNotify();
     shade = getShade();
     readMode = getReadMode();
+    screenWidth = getScreenSize().$1;
+    screenHeight = getScreenSize().$2;
   }
 
   @action
@@ -395,8 +397,8 @@ abstract class _Setting with Store {
 
   @action
   (double, double) getScreenSize() {
-    screenWidth = _box.get(SettingBoxKey.screenWidth, defaultValue: 0);
-    screenHeight = _box.get(SettingBoxKey.screenHeight, defaultValue: 0);
+    screenWidth = _box.get(SettingBoxKey.screenWidth, defaultValue: 0.0);
+    screenHeight = _box.get(SettingBoxKey.screenHeight, defaultValue: 0.0);
     return (screenWidth, screenHeight);
   }
 

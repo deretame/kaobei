@@ -201,6 +201,7 @@ class _NavigationBarPageState extends State<NavigationBarPage> {
       type: type,
       style: ToastificationStyle.flatColored,
       autoCloseDuration: event.duration,
+      showProgressBar: true,
     );
   }
 

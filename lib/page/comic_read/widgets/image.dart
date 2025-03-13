@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kaobei/main.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
@@ -151,12 +152,13 @@ class ImageDisplay extends StatefulWidget {
 }
 
 class _ImageDisplayState extends State<ImageDisplay>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, WindowListener {
   double get screenWidth => setting.screenWidth;
 
   double get screenHeight => setting.screenHeight;
   double imageWidth = 0;
   double imageHeight = 0;
+  double widgetWidth = 0;
   double widgetHeight = 0;
 
   bool initial = false;
@@ -167,24 +169,54 @@ class _ImageDisplayState extends State<ImageDisplay>
     _getImageResolution(widget.imagePath);
     imageWidth = screenWidth;
     imageHeight = screenWidth / 0.7;
-    widgetHeight = screenWidth;
+    widgetHeight = imageHeight;
+    widgetWidth = screenWidth;
     WidgetsBinding.instance.addObserver(this);
+    windowManager.addListener(this);
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    windowManager.removeListener(this);
     super.dispose();
   }
 
   @override
   void didChangeMetrics() {
     super.didChangeMetrics();
-    if (mounted) {
-      setState(() {
-        widgetHeight = imageHeight * (screenWidth / imageWidth);
-      });
-    }
+    Future.delayed(Duration(milliseconds: 100)).then((value) {
+      if (mounted) {
+        setState(() {
+          widgetWidth = MediaQuery.of(context).size.width;
+          widgetHeight = imageHeight * (screenWidth / imageWidth);
+        });
+      }
+    });
+  }
+
+  @override
+  void onWindowMaximize() {
+    Future.delayed(Duration(milliseconds: 100)).then((value) {
+      if (mounted) {
+        setState(() {
+          widgetWidth = MediaQuery.of(context).size.width;
+          widgetHeight = imageHeight * (screenWidth / imageWidth);
+        });
+      }
+    });
+  }
+
+  @override
+  void onWindowUnmaximize() {
+    Future.delayed(Duration(milliseconds: 100)).then((value) {
+      if (mounted) {
+        setState(() {
+          widgetWidth = MediaQuery.of(context).size.width;
+          widgetHeight = imageHeight * (screenWidth / imageWidth);
+        });
+      }
+    });
   }
 
   void _getImageResolution(String imagePath) {
@@ -204,7 +236,8 @@ class _ImageDisplayState extends State<ImageDisplay>
                 setState(() {
                   imageWidth = imageInfo.image.width.toDouble();
                   imageHeight = imageInfo.image.height.toDouble();
-                  widgetHeight = imageHeight / imageWidth * screenWidth;
+                  widgetWidth = MediaQuery.of(context).size.width;
+                  widgetHeight = imageHeight * (screenWidth / imageWidth);
                 });
               }
             });
@@ -220,7 +253,7 @@ class _ImageDisplayState extends State<ImageDisplay>
 
     return Container(
       color: Colors.black,
-      width: screenWidth,
+      width: widgetWidth,
       height: widgetHeight,
       child: Image.file(File(widget.imagePath), fit: BoxFit.fill),
     );

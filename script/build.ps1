@@ -1,24 +1,3 @@
-# 检查是否已安装 powershell-yaml 模块
-if (-not (Get-Module -ListAvailable -Name powershell-yaml))
-{
-    Write-Host "powershell-yaml 模块未安装，正在安装..." -ForegroundColor Yellow
-
-    # 安装 powershell-yaml 模块
-    try
-    {
-        Install-Module -Name powershell-yaml -Scope CurrentUser -Force -ErrorAction Stop
-        Write-Host "powershell-yaml 模块安装成功！" -ForegroundColor Green
-    }
-    catch
-    {
-        Write-Host "无法安装 powershell-yaml 模块: $_" -ForegroundColor Red
-        exit 1
-    }
-}
-
-# 导入 powershell-yaml 模块
-Import-Module powershell-yaml -ErrorAction Stop
-
 # 获取脚本所在目录
 $scriptPath = $PSScriptRoot
 
@@ -26,38 +5,9 @@ $scriptPath = $PSScriptRoot
 $projectRoot = Join-Path $scriptPath "..\"
 
 # 定义文件路径
-$pubspecPath = Join-Path $projectRoot "pubspec.yaml"
 $manifestPath = Join-Path $projectRoot "android\app\src\main\AndroidManifest.xml"
 $releaseDir = Join-Path $projectRoot "build\app\outputs\apk\release"
 $skiaDir = Join-Path $projectRoot "build\app\outputs\apk\skia"
-
-# 从 pubspec.yaml 中提取版本号
-function Get-VersionFromPubspec
-{
-    param (
-        [string]$pubspecPath
-    )
-    try
-    {
-        $pubspecContent = Get-Content -Path $pubspecPath -Raw
-        $parsedYaml = ConvertFrom-Yaml -Yaml $pubspecContent
-        $version = $parsedYaml.version
-        # 提取版本号中的版本号
-        $version = $version -replace '\+.*', ''
-        return $version
-    }
-    catch
-    {
-        Write-Host "无法解析 pubspec.yaml 文件: $_" -ForegroundColor Red
-        exit 1
-    }
-}
-
-# 获取版本号
-$version = Get-VersionFromPubspec -pubspecPath $pubspecPath
-$msixVersion = "$version.0"  # 格式化为 msix_version 所需的格式
-Write-Host "提取的版本号: $version" -ForegroundColor Cyan
-Write-Host "生成的 msix_version: $msixVersion" -ForegroundColor Cyan
 
 try
 {
@@ -129,13 +79,6 @@ finally
 
 # 构建 Windows 发布版本
 Write-Host "开始构建 Windows 发布版本" -ForegroundColor Cyan
-
-# 更新 msix_config 中的 msix_version
-$msixConfigPath = Join-Path $projectRoot "pubspec.yaml"
-$msixConfigContent = Get-Content -Path $msixConfigPath -Raw
-$msixConfigContent = $msixConfigContent -replace '(msix_version:\s*)[\d\.]+', "`$1$msixVersion"
-$msixConfigContent | Set-Content -Path $msixConfigPath
-Write-Host "已将 msix_version 更新为: $msixVersion" -ForegroundColor Green
 
 # 执行 msix 构建
 dart run msix:create

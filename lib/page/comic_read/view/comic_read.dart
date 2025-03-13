@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -492,7 +493,12 @@ class __ComicReadPageState extends State<_ComicReadPage> {
       setState(() {
         pageIndex = closestPosition.index;
         if (!_isComicRolling) {
-          _currentSliderValue = pageIndex - 2;
+          if (pageIndex - 2 <= 0) {
+            _currentSliderValue = 1;
+          } else {
+            _currentSliderValue =
+                (pageIndex - 2).clamp(0, _totalSlots - 1).toDouble() - 1;
+          }
         }
       });
     }
@@ -580,38 +586,34 @@ class __ComicReadPageState extends State<_ComicReadPage> {
     // 判断点击区域
     if (tapPosition.dx < thirdWidth) {
       // 点击左边三分之一
-      _pageController.animateToPage(
-        readMode ? pageIndex - 3 : pageIndex - 1,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+      _jumpToPage(readMode ? pageIndex - 3 : pageIndex - 1);
     } else if (tapPosition.dx < 2 * thirdWidth) {
       // 点击中间三分之一
       if (tapPosition.dy < middleTopHeight) {
         // 点击中间区域的上三分之一
-        _pageController.animateToPage(
-          pageIndex - 3,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
+        _jumpToPage(pageIndex - 3);
       } else if (tapPosition.dy < middleBottomHeight) {
         // 点击中间区域的中三分之一
         _toggleVisibility();
       } else {
         // 点击中间区域的下三分之一
-        _pageController.animateToPage(
-          pageIndex - 1,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
+        _jumpToPage(pageIndex - 1);
       }
     } else {
       // 点击右边三分之一
+      _jumpToPage(readMode ? pageIndex - 1 : pageIndex - 3);
+    }
+  }
+
+  void _jumpToPage(int page) {
+    if (Platform.isAndroid) {
       _pageController.animateToPage(
-        readMode ? pageIndex - 1 : pageIndex - 3,
+        page,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
+    } else if (Platform.isWindows) {
+      _pageController.jumpToPage(page);
     }
   }
 }

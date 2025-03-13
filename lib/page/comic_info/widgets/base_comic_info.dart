@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -100,6 +102,10 @@ class BaseComicInfo extends StatelessWidget {
                                 ? Text("阅读历史: ${stringStore.date}")
                                 : SizedBox.shrink(),
                   ),
+                  if (Platform.isWindows) ...[
+                    SizedBox(height: 3),
+                    SelectableText("简介: $description"),
+                  ],
                 ],
               ),
             ),
@@ -107,12 +113,15 @@ class BaseComicInfo extends StatelessWidget {
           ],
         ),
         SizedBox(height: 3),
+        if (Platform.isAndroid) ...[
+          SizedBox(height: 3),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 10),
+            child: SelectableText(description),
+          ),
+        ],
         SizedBox(height: 3),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 10),
-          child: SelectableText(description),
-        ),
-        SizedBox(height: 3),
+        if (Platform.isWindows) ...[SizedBox(height: 10)],
         CategorizeWidget(categorizes: categorizes),
       ],
     );

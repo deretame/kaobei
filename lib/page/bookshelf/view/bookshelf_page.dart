@@ -147,6 +147,18 @@ class _BookShelfState extends State<BookShelf> with TickerProviderStateMixin {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.refresh),
+        onPressed: () {
+          if (intSelectStore.date == 0) {
+            eventBus.fire(FavoriteEventBus(EventType.refresh));
+          } else if (intSelectStore.date == 1) {
+            eventBus.fire(HistoryEventBus(EventType.refresh));
+          } else {
+            eventBus.fire(DownloadEventBus(EventType.refresh));
+          }
+        },
+      ),
     );
   }
 }

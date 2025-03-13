@@ -15,6 +15,7 @@ import 'package:kaobei/router/router.dart';
 import 'package:kaobei/util/cache_manager.dart';
 import 'package:kaobei/util/pretty_log.dart';
 import 'package:logger/logger.dart';
+import 'package:window_manager/window_manager.dart';
 
 import 'config/config.dart';
 import 'config/setting.dart';
@@ -67,8 +68,12 @@ Future<void> main() async {
       WidgetsFlutterBinding.ensureInitialized();
       // 忽略证书验证
       // HttpOverrides.global = DevHttpOverrides();
-      // 重采样触控刷新率
-      GestureBinding.instance.resamplingEnabled = false;
+
+      // 初始化Hive
+      await Hive.initFlutter();
+      // 注册 Color 适配器
+      Hive.registerAdapter(ThemeModeAdapter());
+      await setting.initBox();
 
       const skia = String.fromEnvironment('use_skia', defaultValue: 'false');
       if (skia == 'true') {
@@ -82,17 +87,41 @@ Future<void> main() async {
       // 清理缓存
       await manageCacheSize();
 
-      // 告诉系统应该用竖屏
-      await SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
-      ]);
+      if (Platform.isAndroid) {
+        // 重采样触控刷新率
+        GestureBinding.instance.resamplingEnabled = false;
 
-      // 初始化Hive
-      await Hive.initFlutter();
-      // 注册 Color 适配器
-      Hive.registerAdapter(ThemeModeAdapter());
-      await setting.initBox();
+        // 告诉系统应该用竖屏
+        await SystemChrome.setPreferredOrientations([
+          DeviceOrientation.portraitUp,
+          DeviceOrientation.portraitDown,
+        ]);
+      }
+
+      if (Platform.isWindows) {
+        // 必须加上这一行。
+        await windowManager.ensureInitialized();
+
+        double screenWidth = setting.screenWidth;
+        double screenHeight = setting.screenHeight;
+
+        if (screenWidth == 0) {
+          screenWidth = 600.0;
+          screenHeight = 10000.0;
+        }
+
+        WindowOptions windowOptions = WindowOptions(
+          size: Size(screenWidth, screenHeight),
+          center: true,
+          backgroundColor: Colors.transparent,
+          skipTaskbar: false,
+          titleBarStyle: TitleBarStyle.normal,
+        );
+        windowManager.waitUntilReadyToShow(windowOptions, () async {
+          await windowManager.show();
+          await windowManager.focus();
+        });
+      }
 
       runApp(const MyApp());
     },
@@ -109,25 +138,55 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+class _MyAppState extends State<MyApp>
+    with WidgetsBindingObserver, WindowListener {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      double screenWidth = MediaQuery.of(context).size.width;
-      double screenHeight = MediaQuery.of(context).size.height;
       statusBarHeight = MediaQuery.of(context).padding.top;
-      setting.setScreenSize(screenWidth, screenHeight);
+      updateScreenSize();
     });
     WidgetsBinding.instance.addObserver(this);
+    windowManager.addListener(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    windowManager.removeListener(this);
+    super.dispose();
   }
 
   @override
   void didChangeMetrics() {
     super.didChangeMetrics();
-    double screenWidth = MediaQuery.of(context).size.width;
-    double screenHeight = MediaQuery.of(context).size.height;
-    setting.setScreenSize(screenWidth, screenHeight);
+    updateScreenSize();
+  }
+
+  @override
+  void onWindowFocus() {
+    updateScreenSize();
+  }
+
+  @override
+  void onWindowBlur() {
+    updateScreenSize();
+  }
+
+  @override
+  void onWindowMaximize() {
+    updateScreenSize();
+  }
+
+  @override
+  void onWindowUnmaximize() {
+    updateScreenSize();
+  }
+
+  @override
+  void onWindowRestore() {
+    updateScreenSize();
   }
 
   void _updateThemeSettings() {
@@ -206,6 +265,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             materialColorSchemeDark = darkColorScheme;
 
             _updateThemeSettings();
+            updateScreenSize();
+
             return MaterialApp.router(
               routerConfig: appRouter.config(),
               locale: const Locale('zh', 'CN'),
@@ -244,5 +305,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         );
       },
     );
+  }
+
+  void updateScreenSize() {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+    setting.setScreenSize(screenWidth, screenHeight);
   }
 }

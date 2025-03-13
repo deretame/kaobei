@@ -82,6 +82,9 @@ dependencies:
   stack_trace: ^1.12.0          # 异常堆栈解析
   logger: ^2.5.0                # 日志打印
 
+  # ================== windows 插件 ==================
+  window_manager: ^0.4.2        # 窗口管理工具
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

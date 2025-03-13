@@ -43,6 +43,8 @@ Future<String> getCachePicture({
     name,
   );
 
+  // logger.d(cacheFilePath);
+
   // 检查文件是否存在
   String existingFilePath = await checkFileExists(
     cacheFilePath,
@@ -51,7 +53,6 @@ Future<String> getCachePicture({
   if (existingFilePath.isNotEmpty) {
     return existingFilePath;
   }
-  // logger.d('开始下载图片: $url');
 
   // 下载图片
   Uint8List imageData = await downloadImageWithRetry(url);

@@ -1,15 +1,12 @@
 import 'dart:io';
 
-import 'package:path_provider/path_provider.dart';
+import 'package:kaobei/util/get_path.dart';
 
 import '../main.dart';
 
 Future<void> manageCacheSize() async {
-  if (Platform.isWindows) {
-    return;
-  }
   // 获取缓存目录
-  final Directory cacheDirectory = await getTemporaryDirectory();
+  final Directory cacheDirectory = Directory(await getCachePath());
 
   // 创建一个变量来保存总大小
   int totalSize = 0;

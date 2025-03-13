@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:kaobei/util/get_path.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:tar/tar.dart';
@@ -192,7 +193,8 @@ Future<void> exportComicAsZip(
 
 /// 创建缓存目录
 Future<String> _createCacheDir() async {
-  var cacheDir = Directory('${Directory.systemTemp.path}/comic_export_cache');
+  var temp = await getCachePath();
+  var cacheDir = Directory('$temp/comic_export_cache');
   if (!await cacheDir.exists()) {
     await cacheDir.create(recursive: true);
   }
@@ -317,20 +319,37 @@ ComicAllInfoJson comicInfoProcess(ComicAllInfoJson comicInfo) {
 /// 创建下载目录
 Future<String> createDownloadDir() async {
   try {
-    // 获取外部存储目录
-    Directory? externalDir = await getExternalStorageDirectory();
-    if (externalDir != null) {
-      String downloadPath = externalDir.path;
-      logger.d('downloadPath: $downloadPath');
+    String filePath;
+
+    if (Platform.isAndroid) {
+      // Android 平台逻辑
+      Directory? externalDir = await getExternalStorageDirectory();
+      if (externalDir == null) {
+        throw Exception('无法获取外部存储目录');
+      }
+
+      RegExp regExp = RegExp(r'/(\d+)/');
+      Match? match = regExp.firstMatch(externalDir.path);
+      if (match == null) {
+        throw Exception('无法从路径中提取用户ID');
+      }
+
+      String userId = match.group(1)!; // 提取到的用户ID
+      filePath = "/storage/emulated/$userId/Download/拷贝/";
+    } else if (Platform.isWindows) {
+      // Windows 平台逻辑
+      Directory? downloadsDir = await getDownloadsDirectory();
+      if (downloadsDir == null) {
+        throw Exception('无法获取下载目录');
+      }
+
+      // 在下载目录下新建一个名为 "拷贝" 的文件夹
+      filePath = path.join(downloadsDir.path, '拷贝');
+    } else {
+      throw UnsupportedError('不支持的平台: ${Platform.operatingSystem}');
     }
 
-    RegExp regExp = RegExp(r'/(\d+)/');
-    Match? match = regExp.firstMatch(externalDir!.path);
-    String userId = match!.group(1)!; // 提取到的用户ID
-
-    String filePath = "/storage/emulated/$userId/Download/拷贝/";
-
-    // 使用path库来确保路径的正确性
+    // 使用 Directory 类来确保路径的正确性
     final dir = Directory(filePath);
 
     // 检查目录是否存在
@@ -338,7 +357,7 @@ Future<String> createDownloadDir() async {
     if (!dirExists) {
       // 如果目录不存在，则创建它
       try {
-        await dir.create(recursive: true); // recursive设置为true可以创建所有必要的父目录
+        await dir.create(recursive: true); // recursive 设置为 true 可以创建所有必要的父目录
         logger.d('Directory created: $filePath');
       } catch (e) {
         logger.e('Failed to create directory: $e');
@@ -348,9 +367,9 @@ Future<String> createDownloadDir() async {
       logger.d('Directory already exists: $filePath');
     }
 
-    return filePath;
+    return "$filePath/";
   } catch (e) {
-    logger.e(e.toString());
+    logger.e('Error: $e');
     rethrow;
   }
 }
