@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kaobei/main.dart';
 
-import '../../../config/config.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
 import '../../full_screen_image_view.dart';
@@ -37,6 +37,10 @@ class _ImageWidgetState extends State<ImageWidget>
   String get chapterId => widget.chapterId;
 
   int get index => widget.index;
+
+  double get screenWidth => setting.screenWidth;
+
+  double get screenHeight => setting.screenHeight;
 
   @override
   bool get wantKeepAlive => true;
@@ -146,17 +150,48 @@ class ImageDisplay extends StatefulWidget {
   State<ImageDisplay> createState() => _ImageDisplayState();
 }
 
-class _ImageDisplayState extends State<ImageDisplay> {
-  double imageWidth = screenWidth;
-  double imageHeight = screenWidth;
+class _ImageDisplayState extends State<ImageDisplay>
+    with WidgetsBindingObserver {
+  double get screenWidth => setting.screenWidth;
+
+  double get screenHeight => setting.screenHeight;
+  double imageWidth = 0;
+  double imageHeight = 0;
+  double widgetHeight = 0;
+
+  bool initial = false;
 
   @override
   void initState() {
     super.initState();
     _getImageResolution(widget.imagePath);
+    imageWidth = screenWidth;
+    imageHeight = screenWidth / 0.7;
+    widgetHeight = screenWidth;
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+    if (mounted) {
+      setState(() {
+        widgetHeight = imageHeight * (screenWidth / imageWidth);
+      });
+    }
   }
 
   void _getImageResolution(String imagePath) {
+    if (!widget.isColumn) {
+      return;
+    }
+
     final Image image = Image.file(File(imagePath));
 
     // 监听图片解析完成
@@ -164,31 +199,30 @@ class _ImageDisplayState extends State<ImageDisplay> {
         .resolve(ImageConfiguration())
         .addListener(
           ImageStreamListener((ImageInfo imageInfo, _) {
-            if (mounted) {
-              setState(() {
-                imageWidth = imageInfo.image.width.toDouble();
-                imageHeight = imageInfo.image.height.toDouble();
-              });
-            }
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                setState(() {
+                  imageWidth = imageInfo.image.width.toDouble();
+                  imageHeight = imageInfo.image.height.toDouble();
+                  widgetHeight = imageHeight / imageWidth * screenWidth;
+                });
+              }
+            });
           }),
         );
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!widget.isColumn) {
+      return Image.file(File(widget.imagePath), fit: BoxFit.contain);
+    }
+
     return Container(
       color: Colors.black,
       width: screenWidth,
-      height:
-          imageHeight != screenWidth
-              ? (imageHeight * (screenWidth / imageWidth))
-              : screenWidth,
-      child:
-          widget.isColumn
-              ? imageWidth != screenWidth && imageHeight != screenWidth
-                  ? Image.file(File(widget.imagePath), fit: BoxFit.fill)
-                  : Container(color: const Color(0xFF2D2D2D))
-              : Image.file(File(widget.imagePath), fit: BoxFit.contain),
+      height: widgetHeight,
+      child: Image.file(File(widget.imagePath), fit: BoxFit.fill),
     );
   }
 }

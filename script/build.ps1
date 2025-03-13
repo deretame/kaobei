@@ -1,5 +1,3 @@
-# 用来在windows环境下构建flutter项目的APK
-
 # 获取脚本所在目录
 $scriptPath = $PSScriptRoot
 
@@ -64,6 +62,7 @@ try
     # 5. 第二次构建：不使用 Skia
     Write-Host "第二次构建：不使用 Skia" -ForegroundColor Cyan
     flutter build apk --split-per-abi
+    Write-Host "第二次构建完成" -ForegroundColor Green
 }
 catch
 {
@@ -72,12 +71,17 @@ catch
 }
 finally
 {
-    # 7. 恢复原始文件
+    # 6. 恢复原始文件
     if (Test-Path $backupFile)
     {
         Move-Item -Path $backupFile -Destination $manifestPath -Force
         Write-Host "已恢复原始配置文件"
     }
 }
+
+# 构建 Windows 发布版本
+Write-Host "开始构建 Windows 发布版本" -ForegroundColor Cyan
+flutter build windows --release
+Write-Host "构建 Windows 发布版本完成" -ForegroundColor Green
 
 Write-Host "构建流程完成" -ForegroundColor Green

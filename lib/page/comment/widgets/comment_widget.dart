@@ -1,12 +1,12 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:kaobei/main.dart';
 import 'package:kaobei/network/http/http_require.dart';
 import 'package:kaobei/page/chapter_comment/chapter_comment.dart';
 import 'package:kaobei/router/router.gr.dart';
 
-import '../../../config/config.dart';
 import '../../../util/toast.dart';
 import '../json/comment_json.dart';
 
@@ -40,6 +40,10 @@ class _CommentWidgetState extends State<CommentWidget> {
     super.initState();
     element = widget.element;
   }
+
+  double get screenWidth => setting.screenWidth;
+
+  double get screenHeight => setting.screenHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -109,23 +113,27 @@ class _CommentWidgetState extends State<CommentWidget> {
             ),
           ),
         ),
-        widget.isTop
-            ? Container(
-              width: screenHeight,
-              height: 5,
-              color: materialColorScheme.onInverseSurface,
-            )
-            : Align(
-              alignment: Alignment.center,
-              child: SizedBox(
-                width: screenWidth * (48 / 50), // 设置宽度
-                height: 1, // 设置高度
-                child: Divider(
-                  color: materialColorScheme.secondaryFixedDim,
-                  thickness: 1,
-                ),
-              ),
-            ),
+        Observer(
+          builder: (context) {
+            return widget.isTop
+                ? Container(
+                  width: screenHeight,
+                  height: 5,
+                  color: materialColorScheme.onInverseSurface,
+                )
+                : Align(
+                  alignment: Alignment.center,
+                  child: SizedBox(
+                    width: screenWidth * (48 / 50), // 设置宽度
+                    height: 1, // 设置高度
+                    child: Divider(
+                      color: materialColorScheme.secondaryFixedDim,
+                      thickness: 1,
+                    ),
+                  ),
+                );
+          },
+        ),
       ],
     );
   }

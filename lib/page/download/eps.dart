@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 
-import '../../config/config.dart';
 import '../../main.dart';
 import '../../mobx/bool_store.dart';
 import '../../object_box/objectbox.g.dart';
@@ -386,47 +385,61 @@ class _EpsWidgetState extends State<_EpsWidget>
     );
   }
 
+  double get screenWidth => setting.screenWidth;
+
+  double get screenHeight => setting.screenHeight;
+
   Widget elementInfo(ListElement element, int rowIndex, int index) {
-    final width = screenWidth * 0.21;
+    return Observer(
+      builder: (context) {
+        final width = screenWidth * 0.21;
 
-    if (element.name == '') return SizedBox(width: width + 4);
+        if (element.name == '') return SizedBox(width: width + 4);
 
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          chapterStatus[rowIndex][index] = !chapterStatus[rowIndex][index];
-        });
-      },
-      child: Observer(
-        builder:
-            (context) => Container(
-              width: width,
-              decoration: BoxDecoration(
-                color:
-                    chapterStatus[rowIndex][index]
-                        ? materialColorScheme.secondaryContainer
-                        : setting.backgroundColor,
-                borderRadius: BorderRadius.circular(5),
-                boxShadow: [
-                  BoxShadow(
-                    color: materialColorScheme.secondary,
-                    blurRadius: 1,
+        return GestureDetector(
+          onTap: () {
+            setState(() {
+              chapterStatus[rowIndex][index] = !chapterStatus[rowIndex][index];
+            });
+          },
+          child: Observer(
+            builder:
+                (context) => Container(
+                  width: width,
+                  decoration: BoxDecoration(
+                    color:
+                        chapterStatus[rowIndex][index]
+                            ? materialColorScheme.secondaryContainer
+                            : setting.backgroundColor,
+                    borderRadius: BorderRadius.circular(5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: materialColorScheme.secondary,
+                        blurRadius: 1,
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
-              child: SizedBox(
-                width: width - 4,
-                child: Center(
-                  child: Text(
-                    element.name,
-                    softWrap: true,
-                    style: TextStyle(fontSize: 14, color: setting.textColor),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 2,
+                    vertical: 4,
+                  ),
+                  child: SizedBox(
+                    width: width - 4,
+                    child: Center(
+                      child: Text(
+                        element.name,
+                        softWrap: true,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: setting.textColor,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-      ),
+          ),
+        );
+      },
     );
   }
 

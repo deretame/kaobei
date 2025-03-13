@@ -114,19 +114,20 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      screenWidth = MediaQuery.of(context).size.width;
-      screenHeight = MediaQuery.of(context).size.height;
+      double screenWidth = MediaQuery.of(context).size.width;
+      double screenHeight = MediaQuery.of(context).size.height;
       statusBarHeight = MediaQuery.of(context).padding.top;
+      setting.setScreenSize(screenWidth, screenHeight);
     });
     WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void didChangeMetrics() {
-    screenWidth = MediaQuery.of(context).size.width;
-    screenHeight = MediaQuery.of(context).size.height;
-    statusBarHeight = MediaQuery.of(context).padding.top;
     super.didChangeMetrics();
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+    setting.setScreenSize(screenWidth, screenHeight);
   }
 
   void _updateThemeSettings() {

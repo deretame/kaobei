@@ -2,8 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 
-import '../../../config/config.dart';
+import '../../../main.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
 
@@ -15,58 +16,63 @@ class CoverWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final width = screenWidth * 0.25;
-    final height = (screenWidth * 0.25) / 0.7;
-    return BlocProvider(
-      create:
-          (context) =>
-              PictureBloc()..add(
-                GetPicture(
-                  PictureInfo(
-                    url: url,
-                    cartoonId: cartoonId,
-                    pictureType: PictureType.cover,
-                    chapterId: '',
+    return Observer(
+      builder: (context) {
+        return BlocProvider(
+          create:
+              (context) =>
+                  PictureBloc()..add(
+                    GetPicture(
+                      PictureInfo(
+                        url: url,
+                        cartoonId: cartoonId,
+                        pictureType: PictureType.cover,
+                        chapterId: '',
+                      ),
+                    ),
                   ),
-                ),
-              ),
-      child: SizedBox(
-        width: width,
-        height: height,
-        child: BlocBuilder<PictureBloc, PictureLoadState>(
-          builder: (context, state) {
-            switch (state.status) {
-              case PictureLoadStatus.initial:
-                return Center(child: CircularProgressIndicator());
-              case PictureLoadStatus.success:
-                return ClipRRect(
-                  borderRadius: BorderRadius.circular(5.0),
-                  child: Image.file(File(state.imagePath!), fit: BoxFit.cover),
-                );
-              case PictureLoadStatus.failure:
-                if (state.result.toString().contains('404')) {
-                  return Center(child: Icon(Icons.error));
-                } else {
-                  return InkWell(
-                    onTap: () {
-                      context.read<PictureBloc>().add(
-                        GetPicture(
-                          PictureInfo(
-                            url: url,
-                            cartoonId: cartoonId,
-                            pictureType: PictureType.cover,
-                            chapterId: '',
-                          ),
-                        ),
+          child: SizedBox(
+            width: setting.screenWidth * 0.25,
+            height: (setting.screenWidth * 0.25) / 0.7,
+            child: BlocBuilder<PictureBloc, PictureLoadState>(
+              builder: (context, state) {
+                switch (state.status) {
+                  case PictureLoadStatus.initial:
+                    return Center(child: CircularProgressIndicator());
+                  case PictureLoadStatus.success:
+                    return ClipRRect(
+                      borderRadius: BorderRadius.circular(5.0),
+                      child: Image.file(
+                        File(state.imagePath!),
+                        fit: BoxFit.cover,
+                      ),
+                    );
+                  case PictureLoadStatus.failure:
+                    if (state.result.toString().contains('404')) {
+                      return Center(child: Icon(Icons.error));
+                    } else {
+                      return InkWell(
+                        onTap: () {
+                          context.read<PictureBloc>().add(
+                            GetPicture(
+                              PictureInfo(
+                                url: url,
+                                cartoonId: cartoonId,
+                                pictureType: PictureType.cover,
+                                chapterId: '',
+                              ),
+                            ),
+                          );
+                        },
+                        child: Center(child: Icon(Icons.refresh)),
                       );
-                    },
-                    child: Center(child: Icon(Icons.refresh)),
-                  );
+                    }
                 }
-            }
-          },
-        ),
-      ),
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 }

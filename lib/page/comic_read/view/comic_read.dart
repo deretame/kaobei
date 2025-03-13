@@ -117,6 +117,9 @@ class __ComicReadPageState extends State<_ComicReadPage> {
   Timer? _timer; // 定时器，定时存储阅读记录
   TapDownDetails? _tapDownDetails; // 保存点击信息
   bool havaError = true; // 记录是否有错误
+  final TransformationController _transformationController =
+      TransformationController();
+  bool _isScaling = false; // 是否正在双指缩放
 
   @override
   void initState() {
@@ -272,7 +275,7 @@ class __ComicReadPageState extends State<_ComicReadPage> {
         setting.readMode != 0
             ? () {
               if (_tapDownDetails != null) {
-                // 使用保存的details执行处理逻辑
+                // 使用保存的 details 执行处理逻辑
                 _handleTap(_tapDownDetails!);
                 _tapDownDetails = null;
               }
@@ -281,9 +284,35 @@ class __ComicReadPageState extends State<_ComicReadPage> {
     onTapDown: (TapDownDetails details) => _tapDownDetails = details,
     child: InteractiveViewer(
       key: ValueKey(refresh),
+      transformationController: _transformationController,
       boundaryMargin: EdgeInsets.zero,
       minScale: 1.0,
       maxScale: 4.0,
+      onInteractionStart: (details) {
+        // 检测是否为双指手势
+        if (details.pointerCount == 2) {
+          setState(() {
+            _isScaling = true; // 启用缩放
+          });
+        }
+      },
+      onInteractionEnd: (details) {
+        // 手势结束时，重置缩放状态
+        setState(() {
+          _isScaling = false;
+        });
+      },
+      onInteractionUpdate: (details) {
+        if (_isScaling) {
+          // 仅在双指缩放时更新缩放比例
+          setState(() {
+            _scale = _transformationController.value.getMaxScaleOnAxis();
+          });
+        } else {
+          // 非双指手势时，重置缩放比例
+          _transformationController.value = Matrix4.identity();
+        }
+      },
       child: Observer(
         builder: (context) {
           if (setting.readMode == 0) {
@@ -540,10 +569,10 @@ class __ComicReadPageState extends State<_ComicReadPage> {
     // 获取点击的全局坐标
     final Offset tapPosition = details.globalPosition;
     // 将屏幕宽度分为三等份
-    final double thirdWidth = screenWidth / 3;
+    final double thirdWidth = setting.screenWidth / 3;
     // 将中间区域的高度分为三等份
-    final double middleTopHeight = screenHeight / 3; // 上三分之一
-    final double middleBottomHeight = screenHeight * 2 / 3; // 下三分之一
+    final double middleTopHeight = setting.screenHeight / 3; // 上三分之一
+    final double middleBottomHeight = setting.screenHeight * 2 / 3; // 下三分之一
 
     final readMode = setting.readMode == 1 ? true : false;
 

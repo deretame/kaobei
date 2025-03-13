@@ -300,6 +300,42 @@ mixin _$Setting on _Setting, Store {
     });
   }
 
+  late final _$screenWidthAtom = Atom(
+    name: '_Setting.screenWidth',
+    context: context,
+  );
+
+  @override
+  double get screenWidth {
+    _$screenWidthAtom.reportRead();
+    return super.screenWidth;
+  }
+
+  @override
+  set screenWidth(double value) {
+    _$screenWidthAtom.reportWrite(value, super.screenWidth, () {
+      super.screenWidth = value;
+    });
+  }
+
+  late final _$screenHeightAtom = Atom(
+    name: '_Setting.screenHeight',
+    context: context,
+  );
+
+  @override
+  double get screenHeight {
+    _$screenHeightAtom.reportRead();
+    return super.screenHeight;
+  }
+
+  @override
+  set screenHeight(double value) {
+    _$screenHeightAtom.reportWrite(value, super.screenHeight, () {
+      super.screenHeight = value;
+    });
+  }
+
   late final _$_SettingActionController = ActionController(
     name: '_Setting',
     context: context,
@@ -918,6 +954,42 @@ mixin _$Setting on _Setting, Store {
   }
 
   @override
+  (double, double) getScreenSize() {
+    final _$actionInfo = _$_SettingActionController.startAction(
+      name: '_Setting.getScreenSize',
+    );
+    try {
+      return super.getScreenSize();
+    } finally {
+      _$_SettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void setScreenSize(double width, double height) {
+    final _$actionInfo = _$_SettingActionController.startAction(
+      name: '_Setting.setScreenSize',
+    );
+    try {
+      return super.setScreenSize(width, height);
+    } finally {
+      _$_SettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void deleteScreenSize() {
+    final _$actionInfo = _$_SettingActionController.startAction(
+      name: '_Setting.deleteScreenSize',
+    );
+    try {
+      return super.deleteScreenSize();
+    } finally {
+      _$_SettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   String toString() {
     return '''
 dynamicColor: ${dynamicColor},
@@ -936,7 +1008,9 @@ webdavPassword: ${webdavPassword},
 autoSync: ${autoSync},
 syncNotify: ${syncNotify},
 shade: ${shade},
-readMode: ${readMode}
+readMode: ${readMode},
+screenWidth: ${screenWidth},
+screenHeight: ${screenHeight}
     ''';
   }
 }

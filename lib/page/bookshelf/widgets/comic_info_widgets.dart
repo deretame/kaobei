@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:kaobei/page/bookshelf/bookshelf.dart';
 import 'package:kaobei/util/get_path.dart';
 
-import '../../../config/config.dart';
 import '../../../main.dart';
 import '../../../object_box/objectbox.g.dart';
 import '../../../router/router.gr.dart';
@@ -153,82 +153,86 @@ class _ElementInfoWidgetState extends State<ElementInfoWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (comicBaseInfo.name == '暂无数据') {
-      return SizedBox(width: screenWidth * 0.25);
-    }
+    return Observer(
+      builder: (context) {
+        if (comicBaseInfo.name == '暂无数据') {
+          return SizedBox(width: setting.screenWidth * 0.25);
+        }
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () {
-        AutoRouter.of(context).push(
-          ComicInfoRoute(
-            comicId: comicBaseInfo.pathWord,
-            comicReadType: comicReadType,
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            AutoRouter.of(context).push(
+              ComicInfoRoute(
+                comicId: comicBaseInfo.pathWord,
+                comicReadType: comicReadType,
+              ),
+            );
+          },
+          onLongPress: () async {
+            String title = '';
+            String message = '';
+            if (comicReadType == ComicReadType.favorite) {
+              title = "收藏";
+              message = "确定要取消收藏（${comicBaseInfo.name}）吗？";
+            }
+            if (comicReadType == ComicReadType.history) {
+              title = "删除历史记录";
+              message = "确定要删除（${comicBaseInfo.name}）的历史记录吗？";
+            }
+            if (comicReadType == ComicReadType.download) {
+              title = "删除下载记录";
+              message = "确定要删除（${comicBaseInfo.name}）的下载记录及下载文件吗？";
+            }
+            bool temp = await showConfirmationDialog(title, message, context);
+
+            if (temp == false) {
+              return;
+            }
+
+            await callBack();
+          },
+          child: SizedBox(
+            width: setting.screenWidth * 0.25,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 5), // 添加间距
+                CoverWidget(
+                  key: ValueKey(comicBaseInfo.coverUrl),
+                  url: comicBaseInfo.coverUrl,
+                  cartoonId: comicBaseInfo.pathWord,
+                ),
+
+                SizedBox(height: 3), // 添加间距
+                SizedBox(
+                  width: setting.screenWidth * 0.25,
+                  child: Text(comicBaseInfo.name),
+                ),
+
+                SizedBox(
+                  width: setting.screenWidth * 0.25,
+                  child: Text(
+                    comicBaseInfo.author.split("|").join("，"),
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: materialColorScheme.primary,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: setting.screenWidth * 0.25,
+                  child: Text(
+                    '${comicBaseInfo.popular} 人气',
+                    style: TextStyle(fontSize: 10),
+                  ),
+                ),
+                SizedBox(height: 5), // 添加间距
+              ],
+            ),
           ),
         );
       },
-      onLongPress: () async {
-        String title = '';
-        String message = '';
-        if (comicReadType == ComicReadType.favorite) {
-          title = "收藏";
-          message = "确定要取消收藏（${comicBaseInfo.name}）吗？";
-        }
-        if (comicReadType == ComicReadType.history) {
-          title = "删除历史记录";
-          message = "确定要删除（${comicBaseInfo.name}）的历史记录吗？";
-        }
-        if (comicReadType == ComicReadType.download) {
-          title = "删除下载记录";
-          message = "确定要删除（${comicBaseInfo.name}）的下载记录及下载文件吗？";
-        }
-        bool temp = await showConfirmationDialog(title, message, context);
-
-        if (temp == false) {
-          return;
-        }
-
-        await callBack();
-      },
-      child: SizedBox(
-        width: screenWidth * 0.25,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 5), // 添加间距
-            CoverWidget(
-              key: ValueKey(comicBaseInfo.coverUrl),
-              url: comicBaseInfo.coverUrl,
-              cartoonId: comicBaseInfo.pathWord,
-            ),
-
-            SizedBox(height: 3), // 添加间距
-            SizedBox(
-              width: screenWidth * 0.25,
-              child: Text(comicBaseInfo.name),
-            ),
-
-            SizedBox(
-              width: screenWidth * 0.25,
-              child: Text(
-                comicBaseInfo.author.split("|").join("，"),
-                style: TextStyle(
-                  fontSize: 10,
-                  color: materialColorScheme.primary,
-                ),
-              ),
-            ),
-            SizedBox(
-              width: screenWidth * 0.25,
-              child: Text(
-                '${comicBaseInfo.popular} 人气',
-                style: TextStyle(fontSize: 10),
-              ),
-            ),
-            SizedBox(height: 5), // 添加间距
-          ],
-        ),
-      ),
     );
   }
 }

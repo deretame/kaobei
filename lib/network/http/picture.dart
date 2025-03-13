@@ -43,8 +43,6 @@ Future<String> getCachePicture({
     name,
   );
 
-  logger.d(cachePath);
-
   // 检查文件是否存在
   String existingFilePath = await checkFileExists(
     cacheFilePath,

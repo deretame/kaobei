@@ -8,7 +8,6 @@ import 'package:kaobei/object_box/objectbox.g.dart';
 import 'package:kaobei/util/toast.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
-import '../../config/config.dart';
 import '../../main.dart';
 import '../../mobx/bool_store.dart';
 import '../../network/http/http_require.dart';
@@ -42,6 +41,10 @@ class DownloadPage extends StatefulWidget {
 }
 
 class _DownloadPageState extends State<DownloadPage> {
+  double get screenWidth => setting.screenWidth;
+
+  double get screenHeight => setting.screenHeight;
+
   ComicInfo get comicInfo => widget.comicInfo;
 
   String get comicInfoJsonStr => widget.comicInfoJsonStr;
@@ -84,7 +87,11 @@ class _DownloadPageState extends State<DownloadPage> {
                 SliverToBoxAdapter(child: SizedBox(height: 10)),
                 ...epsWidgets,
                 SliverToBoxAdapter(
-                  child: SizedBox(height: screenHeight * (1 / 3)),
+                  child: Observer(
+                    builder: (context) {
+                      return SizedBox(height: screenHeight * (1 / 3));
+                    },
+                  ),
                 ),
               ],
             ),

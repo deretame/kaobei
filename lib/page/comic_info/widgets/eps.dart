@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
-import 'package:kaobei/config/config.dart';
 import 'package:kaobei/page/comic_info/comic_info.dart';
 
 import '../../../main.dart';
@@ -355,57 +354,53 @@ class _EpsWidgetState extends State<_EpsWidget>
     );
   }
 
-  Widget elementInfo(ListElement element) {
-    final width = screenWidth * 0.21;
+  Widget elementInfo(ListElement element) => Observer(
+    builder: (context) {
+      if (element.name == '') {
+        return SizedBox(width: setting.screenWidth * 0.21);
+      }
 
-    if (element.name == '') return SizedBox(width: width + 4);
+      ComicReadType type = widget.comicReadType;
+      if (type != ComicReadType.download) {
+        type = ComicReadType.none;
+      }
 
-    ComicReadType type = widget.comicReadType;
-    if (type != ComicReadType.download) {
-      type = ComicReadType.none;
-    }
-
-    return GestureDetector(
-      onTap: () {
-        AutoRouter.of(context).push(
-          ComicReadRoute(
-            comicInfo: comicInfo,
-            chapterId: element.uuid,
-            stringStore: stringStore,
-            comicReadType: type,
+      return GestureDetector(
+        onTap: () {
+          AutoRouter.of(context).push(
+            ComicReadRoute(
+              comicInfo: comicInfo,
+              chapterId: element.uuid,
+              stringStore: stringStore,
+              comicReadType: type,
+            ),
+          );
+        },
+        child: Container(
+          width: setting.screenWidth * 0.21,
+          decoration: BoxDecoration(
+            color: setting.backgroundColor,
+            borderRadius: BorderRadius.circular(5),
+            boxShadow: [
+              BoxShadow(color: materialColorScheme.secondary, blurRadius: 1),
+            ],
           ),
-        );
-      },
-      child: Observer(
-        builder:
-            (context) => Container(
-              width: width,
-              decoration: BoxDecoration(
-                color: setting.backgroundColor,
-                borderRadius: BorderRadius.circular(5),
-                boxShadow: [
-                  BoxShadow(
-                    color: materialColorScheme.secondary,
-                    blurRadius: 1,
-                  ),
-                ],
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
-              child: SizedBox(
-                width: width - 4,
-                child: Center(
-                  child: Text(
-                    element.name,
-                    softWrap: true,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: materialColorScheme.onSurface,
-                    ),
-                  ),
+          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+          child: SizedBox(
+            width: setting.screenWidth * 0.21 - 4,
+            child: Center(
+              child: Text(
+                element.name,
+                softWrap: true,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: materialColorScheme.onSurface,
                 ),
               ),
             ),
-      ),
-    );
-  }
+          ),
+        ),
+      );
+    },
+  );
 }

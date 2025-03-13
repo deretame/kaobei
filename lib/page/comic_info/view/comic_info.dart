@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:kaobei/config/config.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:kaobei/page/comic_info/comic_info.dart';
 import 'package:kaobei/page/comic_info/json/comic_all_info_json/comic_all_info_json.dart'
     as comic_all_info_json;
@@ -316,7 +316,13 @@ class _ComicInfoPageState extends State<_ComicInfoPage> {
               ),
             ),
             ...epsWidgets,
-            SliverToBoxAdapter(child: SizedBox(height: screenHeight * (1 / 3))),
+            SliverToBoxAdapter(
+              child: Observer(
+                builder: (context) {
+                  return SizedBox(height: setting.screenHeight * (1 / 3));
+                },
+              ),
+            ),
           ],
         ),
       ),

@@ -1,9 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:kaobei/page/search_result/search_result.dart';
 import 'package:kaobei/router/router.gr.dart';
 
-import '../../../config/config.dart';
 import '../../../main.dart';
 import '../json/search_result.dart';
 
@@ -57,45 +57,55 @@ Widget elementInfoRow(List<ListElement> elementsRows, BuildContext context) {
   );
 }
 
+double get screenWidth => setting.screenWidth;
+
+double get screenHeight => setting.screenHeight;
+
 Widget elementInfo(ListElement element, BuildContext context) {
-  if (element.name == '暂无数据') return SizedBox(width: screenWidth * 0.25);
+  return Observer(
+    builder: (context) {
+      if (element.name == '暂无数据') return SizedBox(width: screenWidth * 0.25);
 
-  return GestureDetector(
-    behavior: HitTestBehavior.opaque,
-    onTap: () {
-      AutoRouter.of(context).push(ComicInfoRoute(comicId: element.pathWord));
-    },
-    child: SizedBox(
-      width: screenWidth * 0.25,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(height: 5), // 添加间距
-          CoverWidget(url: element.cover, cartoonId: element.pathWord),
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          AutoRouter.of(
+            context,
+          ).push(ComicInfoRoute(comicId: element.pathWord));
+        },
+        child: SizedBox(
+          width: screenWidth * 0.25,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 5), // 添加间距
+              CoverWidget(url: element.cover, cartoonId: element.pathWord),
 
-          SizedBox(height: 3), // 添加间距
-          SizedBox(width: screenWidth * 0.25, child: Text(element.name)),
+              SizedBox(height: 3), // 添加间距
+              SizedBox(width: screenWidth * 0.25, child: Text(element.name)),
 
-          SizedBox(
-            width: screenWidth * 0.25,
-            child: Text(
-              element.author[0].name,
-              style: TextStyle(
-                fontSize: 10,
-                color: materialColorScheme.primary,
+              SizedBox(
+                width: screenWidth * 0.25,
+                child: Text(
+                  element.author[0].name,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: materialColorScheme.primary,
+                  ),
+                ),
               ),
-            ),
+              SizedBox(
+                width: screenWidth * 0.25,
+                child: Text(
+                  '${element.popular} 人气',
+                  style: TextStyle(fontSize: 10),
+                ),
+              ),
+              SizedBox(height: 5), // 添加间距
+            ],
           ),
-          SizedBox(
-            width: screenWidth * 0.25,
-            child: Text(
-              '${element.popular} 人气',
-              style: TextStyle(fontSize: 10),
-            ),
-          ),
-          SizedBox(height: 5), // 添加间距
-        ],
-      ),
-    ),
+        ),
+      );
+    },
   );
 }

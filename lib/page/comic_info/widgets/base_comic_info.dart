@@ -56,29 +56,36 @@ class BaseComicInfo extends StatelessWidget {
                         "作者: ",
                         style: TextStyle(color: materialColorScheme.primary),
                       ),
-                      ...author.map((e) {
-                        return GestureDetector(
-                          onTap: () {
-                            AutoRouter.of(context).push(
-                              TagAuthorSearchRoute(
-                                qType: QType.author,
-                                name: e.name,
-                                pathWord: e.pathWord,
-                              ),
-                            );
-                          },
-                          onLongPress: () {
-                            Clipboard.setData(ClipboardData(text: e.name));
-                            showSuccessToast("已将 ${e.name} 复制到剪贴板");
-                          },
-                          child: Text(
-                            "${e.name}   ",
-                            style: TextStyle(
-                              color: materialColorScheme.secondary,
-                            ),
-                          ),
-                        );
-                      }),
+                      Wrap(
+                        spacing: 8.0, // 子组件之间的水平间距
+                        runSpacing: 4.0, // 子组件之间的垂直间距
+                        children:
+                            author.map((e) {
+                              return GestureDetector(
+                                onTap: () {
+                                  AutoRouter.of(context).push(
+                                    TagAuthorSearchRoute(
+                                      qType: QType.author,
+                                      name: e.name,
+                                      pathWord: e.pathWord,
+                                    ),
+                                  );
+                                },
+                                onLongPress: () {
+                                  Clipboard.setData(
+                                    ClipboardData(text: e.name),
+                                  );
+                                  showSuccessToast("已将 ${e.name} 复制到剪贴板");
+                                },
+                                child: Text(
+                                  "${e.name}   ",
+                                  style: TextStyle(
+                                    color: materialColorScheme.secondary,
+                                  ),
+                                ),
+                              );
+                            }).toList(), // 将 Iterable 转换为 List
+                      ),
                     ],
                   ),
                   SizedBox(height: 3),

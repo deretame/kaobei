@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:kaobei/main.dart';
 import 'package:kaobei/page/chapter_comment/chapter_comment.dart';
 
-import '../../../config/config.dart';
 import '../../../util/toast.dart';
 import '../json/chapter_comments_json.dart';
 
@@ -71,12 +71,16 @@ class _CommentWidgetState extends State<CommentWidget> {
         ),
         Align(
           alignment: Alignment.center,
-          child: SizedBox(
-            width: screenWidth * (48 / 50), // 设置宽度
-            child: Divider(
-              color: materialColorScheme.secondaryFixedDim,
-              thickness: 1,
-            ),
+          child: Observer(
+            builder: (context) {
+              return SizedBox(
+                width: setting.screenWidth * (48 / 50), // 设置宽度
+                child: Divider(
+                  color: materialColorScheme.secondaryFixedDim,
+                  thickness: 1,
+                ),
+              );
+            },
           ),
         ),
       ],

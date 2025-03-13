@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import '../../../config/config.dart';
+import '../../../main.dart';
 import 'image.dart';
 
 class ColumnList extends StatelessWidget {
@@ -39,6 +40,8 @@ class ColumnList extends StatelessWidget {
           itemPositionsListener: itemPositionsListener,
         );
   }
+
+  double get screenWidth => setting.screenWidth;
 
   Widget elementBuilder(BuildContext context, int index) {
     if (index == 0) {

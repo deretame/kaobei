@@ -46,6 +46,10 @@ abstract class _Setting with Store {
   bool shade = true; // 夜间模式遮罩
   @observable
   int readMode = 0; // 阅读模式
+  @observable
+  double screenWidth = 0; // 屏幕宽度
+  @observable
+  double screenHeight = 0; // 屏幕高度
 
   Future<void> initBox() async {
     if (!Hive.isBoxOpen('settings')) {
@@ -388,6 +392,29 @@ abstract class _Setting with Store {
     readMode = 0;
     _box.delete(SettingBoxKey.readMode);
   }
+
+  @action
+  (double, double) getScreenSize() {
+    screenWidth = _box.get(SettingBoxKey.screenWidth, defaultValue: 0);
+    screenHeight = _box.get(SettingBoxKey.screenHeight, defaultValue: 0);
+    return (screenWidth, screenHeight);
+  }
+
+  @action
+  void setScreenSize(double width, double height) {
+    screenWidth = width;
+    screenHeight = height;
+    _box.put(SettingBoxKey.screenWidth, width);
+    _box.put(SettingBoxKey.screenHeight, height);
+  }
+
+  @action
+  void deleteScreenSize() {
+    screenWidth = 0;
+    screenHeight = 0;
+    _box.delete(SettingBoxKey.screenWidth);
+    _box.delete(SettingBoxKey.screenHeight);
+  }
 }
 
 class SettingBoxKey {
@@ -409,4 +436,6 @@ class SettingBoxKey {
   static const String syncNotify = 'syncNotify'; // 自动同步提醒
   static const String shade = 'shade'; // 黑夜模式遮罩
   static const String readMode = "readMode"; // 阅读模式
+  static const String screenWidth = "screenWidth"; // 屏幕宽度
+  static const String screenHeight = "screenHeight"; // 屏幕高度
 }
