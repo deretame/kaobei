@@ -109,7 +109,7 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -118,6 +118,15 @@ class _MyAppState extends State<MyApp> {
       screenHeight = MediaQuery.of(context).size.height;
       statusBarHeight = MediaQuery.of(context).padding.top;
     });
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeMetrics() {
+    screenWidth = MediaQuery.of(context).size.width;
+    screenHeight = MediaQuery.of(context).size.height;
+    statusBarHeight = MediaQuery.of(context).padding.top;
+    super.didChangeMetrics();
   }
 
   void _updateThemeSettings() {

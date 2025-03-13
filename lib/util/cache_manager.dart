@@ -5,6 +5,9 @@ import 'package:path_provider/path_provider.dart';
 import '../main.dart';
 
 Future<void> manageCacheSize() async {
+  if (Platform.isWindows) {
+    return;
+  }
   // 获取缓存目录
   final Directory cacheDirectory = await getTemporaryDirectory();
 

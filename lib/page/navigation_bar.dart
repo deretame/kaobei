@@ -1,6 +1,6 @@
-import 'package:auto_route/annotations.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
@@ -58,6 +58,17 @@ class _NavigationBarPageState extends State<NavigationBarPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _addOverlay();
     });
+
+    // 监听全局键盘事件
+    HardwareKeyboard.instance.addHandler(_handleKeyEvent);
+  }
+
+  bool _handleKeyEvent(KeyEvent event) {
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.escape) {
+      AutoRouter.of(context).maybePop();
+    }
+    return false;
   }
 
   @override
