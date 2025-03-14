@@ -64,8 +64,8 @@ class _BottomWidgetState extends State<BottomWidget> {
   }
 
   Widget _buildChapterButton(String text, bool isActive, VoidCallback? onTap) {
-    return GestureDetector(
-      onTap: onTap,
+    return TextButton(
+      onPressed: onTap,
       child: Text(
         text,
         style: _buttonTextStyle.copyWith(
@@ -132,7 +132,7 @@ class _BottomWidgetState extends State<BottomWidget> {
                 child: Column(
                   children: [
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         const SizedBox(width: 10),
                         _buildChapterButton('上一章', prev.isNotEmpty, () async {

@@ -5,8 +5,15 @@ import 'package:kaobei/util/get_path.dart';
 import '../main.dart';
 
 Future<void> manageCacheSize() async {
-  // 获取缓存目录
-  final Directory cacheDirectory = Directory(await getCachePath());
+  // 获取缓存目录路径
+  final String cachePath = await getCachePath();
+  final Directory cacheDirectory = Directory(cachePath);
+
+  // 如果目录不存在，则创建
+  if (!cacheDirectory.existsSync()) {
+    logger.i('Cache directory does not exist, creating...');
+    await cacheDirectory.create(recursive: true);
+  }
 
   // 创建一个变量来保存总大小
   int totalSize = 0;

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -185,6 +186,9 @@ class __ComicReadPageState extends State<_ComicReadPage> {
         writeToDatabase();
       });
     });
+
+    // 监听全局键盘事件
+    HardwareKeyboard.instance.addHandler(_handleKeyEvent);
   }
 
   @override
@@ -194,6 +198,23 @@ class __ComicReadPageState extends State<_ComicReadPage> {
     _timer?.cancel();
     _timer = null;
     super.dispose();
+
+    // 移除监听全局键盘事件
+    HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
+  }
+
+  bool _handleKeyEvent(KeyEvent event) {
+    final readMode = setting.readMode == 1 ? true : false;
+    if (event is KeyDownEvent) {
+      if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+        // 处理左键
+        _pageController.jumpToPage(readMode ? pageIndex - 3 : pageIndex - 1);
+      } else if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+        // 处理右键
+        _pageController.jumpToPage(readMode ? pageIndex - 1 : pageIndex - 3);
+      }
+    }
+    return false; // 返回 false 表示事件未处理完毕，可以继续传递
   }
 
   @override
@@ -326,23 +347,42 @@ class __ComicReadPageState extends State<_ComicReadPage> {
               itemPositionsListener: _itemPositionsListener,
             );
           } else {
-            return RowModeWidget(
-              comicImageUrlList: comicImageUrlList,
-              comicId: comicId,
-              uuid: uuid,
-              pageController: _pageController,
-              onPageChanged: (int index) {
-                setState(() {
-                  pageIndex = index + 2;
-                  // logger.d('当前页数：${pageIndex - 1}');
-                  if (!_isComicRolling) {
-                    _currentSliderValue =
-                        (pageIndex).clamp(0, _totalSlots - 1).toDouble() - 1;
-                    _isVisible = false;
+            return Listener(
+              onPointerSignal: (PointerSignalEvent event) {
+                if (event is PointerScrollEvent) {
+                  // 处理滚轮事件
+                  final readMode = setting.readMode == 1 ? true : false;
+                  if (event.scrollDelta.dy > 0) {
+                    // 处理向上滚动
+                    _pageController.jumpToPage(
+                      readMode ? pageIndex - 1 : pageIndex - 3,
+                    );
+                  } else if (event.scrollDelta.dy < 0) {
+                    // 处理向下滚动
+                    _pageController.jumpToPage(
+                      readMode ? pageIndex - 3 : pageIndex - 1,
+                    );
                   }
-                });
+                }
               },
-              isSliderRolling: _isSliderRolling,
+              child: RowModeWidget(
+                comicImageUrlList: comicImageUrlList,
+                comicId: comicId,
+                uuid: uuid,
+                pageController: _pageController,
+                onPageChanged: (int index) {
+                  setState(() {
+                    pageIndex = index + 2;
+                    // logger.d('当前页数：${pageIndex - 1}');
+                    if (!_isComicRolling) {
+                      _currentSliderValue =
+                          (pageIndex).clamp(0, _totalSlots - 1).toDouble() - 1;
+                      _isVisible = false;
+                    }
+                  });
+                },
+                isSliderRolling: _isSliderRolling,
+              ),
             );
           }
         },

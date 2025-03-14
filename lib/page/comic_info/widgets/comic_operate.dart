@@ -172,7 +172,7 @@ class _ComicOperateWidgetState extends State<ComicOperateWidget> {
     collectComic.collectTime = DateTime.now().toUtc();
     objectbox.collectBox.put(collectComic);
     setState(() => isCollected = !isCollected);
-    showInfoToast('已收藏');
+    showSuccessToast('已收藏');
   }
 
   void unCollectComic() {

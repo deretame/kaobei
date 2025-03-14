@@ -80,8 +80,8 @@ finally
 # 构建 Windows 发布版本
 Write-Host "开始构建 Windows 发布版本" -ForegroundColor Cyan
 
-# 执行 msix 构建
-dart run msix:create
+# 执行构建
+flutter build windows --release
 Write-Host "`n"
 Write-Host "构建 Windows 发布版本完成" -ForegroundColor Green
 

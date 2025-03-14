@@ -13,6 +13,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:hive_ce_flutter/adapters.dart';
 import 'package:kaobei/router/router.dart';
 import 'package:kaobei/util/cache_manager.dart';
+import 'package:kaobei/util/get_path.dart';
 import 'package:kaobei/util/pretty_log.dart';
 import 'package:logger/logger.dart';
 import 'package:window_manager/window_manager.dart';
@@ -69,8 +70,19 @@ Future<void> main() async {
       // 忽略证书验证
       // HttpOverrides.global = DevHttpOverrides();
 
+      String? hivePath;
       // 初始化Hive
-      await Hive.initFlutter();
+      if (Platform.isWindows) {
+        hivePath = await getFilePath();
+        final Directory hiveDirectory = Directory(hivePath);
+
+        // 如果目录不存在，则创建
+        if (!hiveDirectory.existsSync()) {
+          logger.i('Cache directory does not exist, creating...');
+          await hiveDirectory.create(recursive: true);
+        }
+      }
+      await Hive.initFlutter(hivePath);
       // 注册 Color 适配器
       Hive.registerAdapter(ThemeModeAdapter());
       await setting.initBox();
@@ -99,7 +111,6 @@ Future<void> main() async {
       }
 
       if (Platform.isWindows) {
-        // 必须加上这一行。
         await windowManager.ensureInitialized();
 
         double screenWidth = setting.screenWidth;
@@ -107,7 +118,7 @@ Future<void> main() async {
 
         if (screenWidth == 0) {
           screenWidth = 600.0;
-          screenHeight = 10000.0;
+          screenHeight = 1000.0;
         }
 
         WindowOptions windowOptions = WindowOptions(
