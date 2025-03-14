@@ -1,6 +1,6 @@
 name: kaobei
 description: "使用flutter编写的三方拷贝漫画"
-version: 1.3.0+12
+version: 1.4.0+13
 
 environment:
   sdk: ^3.7.0-323.0.dev
@@ -30,6 +30,7 @@ dependencies:
   flutter_markdown: ^0.7.6+2          # Markdown 内容渲染组件
   flutter_colorpicker: ^1.1.0         # 颜色选择器组件
   flutter_sticky_header: ^0.7.0       # 粘性头部组件
+  dropdown_button2: ^2.3.9            # 下拉菜单组件
 
   # ================== 数据持久化 ==================
   hive_ce: ^2.10.1                # 轻量级键值对数据库

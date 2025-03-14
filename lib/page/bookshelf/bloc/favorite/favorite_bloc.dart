@@ -47,7 +47,15 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
             }).toList();
       }
 
-      comicList.sort((a, b) => b.collectTime.compareTo(a.collectTime));
+      if (event.searchEnter.sortType == 1) {
+        comicList.sort((a, b) => a.popular.compareTo(b.popular));
+      } else if (event.searchEnter.sortType == 2) {
+        comicList.sort((a, b) => b.popular.compareTo(a.popular));
+      } else if (event.searchEnter.sortType == 3) {
+        comicList.sort((a, b) => a.collectTime.compareTo(b.collectTime));
+      } else if (event.searchEnter.sortType == 4) {
+        comicList.sort((a, b) => b.collectTime.compareTo(a.collectTime));
+      }
 
       var temp =
           comicList.map((e) {

@@ -48,7 +48,19 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
             }).toList();
       }
 
-      comicList.sort((a, b) => b.lastViewingTime.compareTo(a.lastViewingTime));
+      if (event.searchEnter.sortType == 1) {
+        comicList.sort((a, b) => a.popular.compareTo(b.popular));
+      } else if (event.searchEnter.sortType == 2) {
+        comicList.sort((a, b) => b.popular.compareTo(a.popular));
+      } else if (event.searchEnter.sortType == 3) {
+        comicList.sort(
+          (a, b) => a.lastViewingTime.compareTo(b.lastViewingTime),
+        );
+      } else if (event.searchEnter.sortType == 4) {
+        comicList.sort(
+          (a, b) => b.lastViewingTime.compareTo(a.lastViewingTime),
+        );
+      }
 
       var temp =
           comicList.map((e) {

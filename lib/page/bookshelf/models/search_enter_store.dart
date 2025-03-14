@@ -9,7 +9,7 @@ abstract class _SearchEnterStore with Store {
   @observable
   String keyword = "";
   @observable
-  int sortType = 1;
+  int sortType = 4;
 
   @action
   void setKeyword(String value) {

@@ -47,7 +47,15 @@ class DownloadBloc extends Bloc<DownloadEvent, DownloadState> {
             }).toList();
       }
 
-      comicList.sort((a, b) => b.downloadTime.compareTo(a.downloadTime));
+      if (event.searchEnter.sortType == 1) {
+        comicList.sort((a, b) => a.popular.compareTo(b.popular));
+      } else if (event.searchEnter.sortType == 2) {
+        comicList.sort((a, b) => b.popular.compareTo(a.popular));
+      } else if (event.searchEnter.sortType == 3) {
+        comicList.sort((a, b) => a.downloadTime.compareTo(b.downloadTime));
+      } else if (event.searchEnter.sortType == 4) {
+        comicList.sort((a, b) => b.downloadTime.compareTo(a.downloadTime));
+      }
 
       var temp =
           comicList.map((e) {

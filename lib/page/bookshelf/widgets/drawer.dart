@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:kaobei/page/bookshelf/widgets/sort.dart';
 
 import '../../../main.dart';
 import '../../../mobx/int_store.dart';
@@ -30,6 +31,7 @@ class _SideDrawerState extends State<SideDrawer> {
   late SearchEnterStore historyStore;
   late SearchEnterStore downloadStore;
   String keyword = '';
+  int sortType = 0;
 
   @override
   void initState() {
@@ -68,7 +70,27 @@ class _SideDrawerState extends State<SideDrawer> {
               ),
               Container(color: setting.textColor, height: 1),
               SizedBox(height: 16),
-
+              Builder(
+                builder: (context) {
+                  SearchEnterStore store;
+                  if (indexStore.date == 0) {
+                    store = favoriteStore;
+                  } else if (indexStore.date == 1) {
+                    store = historyStore;
+                  } else {
+                    store = downloadStore;
+                  }
+                  return Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                    child: SortWidget(
+                      searchEnterStore: store,
+                      onSortChanged: (value) {
+                        sortType = value;
+                      },
+                    ),
+                  );
+                },
+              ),
               keywordSearch(),
               Spacer(),
               Padding(
@@ -103,12 +125,15 @@ class _SideDrawerState extends State<SideDrawer> {
   void _onTap() {
     if (indexStore.date == 0) {
       favoriteStore.setKeyword(keyword);
+      favoriteStore.sortType = sortType;
       eventBus.fire(FavoriteEventBus(EventType.refresh));
     } else if (indexStore.date == 1) {
       historyStore.setKeyword(keyword);
+      historyStore.sortType = sortType;
       eventBus.fire(HistoryEventBus(EventType.refresh));
     } else {
       downloadStore.setKeyword(keyword);
+      downloadStore.sortType = sortType;
       eventBus.fire(DownloadEventBus(EventType.refresh));
     }
   }
