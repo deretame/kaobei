@@ -80,6 +80,7 @@ class _SideDrawerState extends State<SideDrawer> {
                   } else {
                     store = downloadStore;
                   }
+                  sortType = store.sortType;
                   return Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16.0),
                     child: SortWidget(
