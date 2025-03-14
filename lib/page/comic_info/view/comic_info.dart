@@ -101,6 +101,10 @@ class _ComicInfoPageState extends State<_ComicInfoPage> {
           icon: const Icon(Icons.home),
           onPressed: () => AutoRouter.of(context).popUntilRoot(),
         ),
+        IconButton(
+          icon: const Icon(Icons.refresh),
+          onPressed: () => _onFloatingButtonPressed(),
+        ),
         Spacer(),
         if (widget.comicReadType == ComicReadType.download) _exportIcon(),
       ],
@@ -221,6 +225,46 @@ class _ComicInfoPageState extends State<_ComicInfoPage> {
   }
 
   Widget _successWidget(ComicInfoState? state) {
+    List<EpsWidget> epsWidgets = _init(state);
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        _onFloatingButtonPressed();
+      },
+      child: SizedBox(
+        key: ValueKey(uuid),
+        child: CustomScrollView(
+          physics: AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverToBoxAdapter(
+              child: BaseComicInfo(
+                comicInfo: comicInfo!,
+                stringStore: stringStore,
+              ),
+            ),
+            SliverToBoxAdapter(child: SizedBox(height: 10)),
+            SliverToBoxAdapter(
+              child: ComicOperateWidget(
+                comicInfo: comicInfo!,
+                comicInfoJsonStr: comicInfoJsonStr,
+              ),
+            ),
+            ...epsWidgets,
+            SliverToBoxAdapter(
+              child: Observer(
+                builder: (context) {
+                  return SizedBox(height: setting.screenHeight * (1 / 3));
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<EpsWidget> _init(ComicInfoState? state) {
+    List<EpsWidget> epsWidgets = [];
     if (comicReadType == ComicReadType.download) {
       var downloadInfo =
           objectbox.downloadBox
@@ -239,8 +283,6 @@ class _ComicInfoPageState extends State<_ComicInfoPage> {
       comicInfo = state.comicInfo;
       comicInfoJsonStr = state.result;
     }
-
-    List<EpsWidget> epsWidgets = [];
 
     int index = 0;
     if (comicReadType == ComicReadType.download) {
@@ -293,40 +335,7 @@ class _ComicInfoPageState extends State<_ComicInfoPage> {
       _isCallbackExecuted = true;
     }
 
-    return RefreshIndicator(
-      onRefresh: () async {
-        _onFloatingButtonPressed();
-      },
-      child: SizedBox(
-        key: ValueKey(uuid),
-        child: CustomScrollView(
-          physics: AlwaysScrollableScrollPhysics(),
-          slivers: [
-            SliverToBoxAdapter(
-              child: BaseComicInfo(
-                comicInfo: comicInfo!,
-                stringStore: stringStore,
-              ),
-            ),
-            SliverToBoxAdapter(child: SizedBox(height: 10)),
-            SliverToBoxAdapter(
-              child: ComicOperateWidget(
-                comicInfo: comicInfo!,
-                comicInfoJsonStr: comicInfoJsonStr,
-              ),
-            ),
-            ...epsWidgets,
-            SliverToBoxAdapter(
-              child: Observer(
-                builder: (context) {
-                  return SizedBox(height: setting.screenHeight * (1 / 3));
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    return epsWidgets;
   }
 
   void _onFloatingButtonPressed() async {

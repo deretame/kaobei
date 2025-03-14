@@ -14,6 +14,7 @@ class SliderWidget extends StatefulWidget {
   final ValueChanged<bool> changeComicRollState;
   final ItemScrollController itemScrollController;
   final PageController pageController;
+  final bool isKeyboardEventHandling;
 
   const SliderWidget({
     super.key,
@@ -24,6 +25,7 @@ class SliderWidget extends StatefulWidget {
     required this.changeComicRollState,
     required this.itemScrollController,
     required this.pageController,
+    required this.isKeyboardEventHandling,
   });
 
   @override
@@ -44,6 +46,8 @@ class _SliderWidgetState extends State<SliderWidget> {
   }
 
   void _handleSliderUpdate(double newValue) {
+    if (widget.isKeyboardEventHandling) return; // 如果键盘事件正在处理，直接返回
+
     widget.changeSliderValue(newValue);
     widget.changeSliderRollState(true);
 

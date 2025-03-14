@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:kaobei/object_box/objectbox.g.dart';
 import 'package:kaobei/util/toast.dart';
+import 'package:path/path.dart' as path;
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../main.dart';
@@ -175,8 +176,13 @@ class _DownloadPageState extends State<DownloadPage> {
         for (var chapterList in group.chapterList) {
           downloadedUuids.add(chapterList.chapterInfo.chapter.uuid);
           for (var pictureUrl in chapterList.chapterInfo.chapter.contents) {
-            var picturePath =
-                "$downloadPath/$pathWord/comic/${chapterList.chapterInfo.chapter.uuid}/${pictureUrl.replaceAll(RegExp(r'[^a-zA-Z0-9_\-.]'), '_')}";
+            var picturePath = path.join(
+              downloadPath,
+              pathWord,
+              "comic",
+              chapterList.chapterInfo.chapter.uuid,
+              pictureUrl.replaceAll(RegExp(r'[^a-zA-Z0-9_\-.]'), '_'),
+            );
             pictureAddr.add(picturePath);
           }
         }
@@ -401,7 +407,7 @@ class _DownloadPageState extends State<DownloadPage> {
     await objectbox.downloadBox.putAsync(comicDownload);
 
     // 清理工作
-    var comicDir = "$downloadPath/$pathWord/comic";
+    var comicDir = path.join(downloadPath, pathWord, "comic");
     Directory directory = Directory(comicDir);
 
     // 列出目录下的所有文件和子目录
@@ -412,7 +418,7 @@ class _DownloadPageState extends State<DownloadPage> {
 
     List<String> downloadEpsDir = [];
     for (var element in selectedUuids) {
-      downloadEpsDir.add("$downloadPath/$pathWord/comic/$element");
+      downloadEpsDir.add(path.join(downloadPath, pathWord, "comic", element));
     }
 
     // 过滤出需要删除的目录
@@ -427,7 +433,7 @@ class _DownloadPageState extends State<DownloadPage> {
     }
 
     var allPicturePaths = await getAllFilePaths(
-      "$downloadPath/$pathWord/comic/",
+      path.join(downloadPath, pathWord, "comic"),
     );
 
     // 过滤出需要删除的图片

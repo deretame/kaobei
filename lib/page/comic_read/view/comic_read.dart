@@ -203,9 +203,13 @@ class __ComicReadPageState extends State<_ComicReadPage> {
     HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
   }
 
+  bool _isKeyboardEventHandling = false; // 标记键盘事件是否正在处理
+
   bool _handleKeyEvent(KeyEvent event) {
-    final readMode = setting.readMode == 1 ? true : false;
     if (event is KeyDownEvent) {
+      _isKeyboardEventHandling = true; // 标记键盘事件正在处理
+
+      final readMode = setting.readMode == 1 ? true : false;
       if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
         // 处理左键
         _pageController.jumpToPage(readMode ? pageIndex - 3 : pageIndex - 1);
@@ -213,8 +217,12 @@ class __ComicReadPageState extends State<_ComicReadPage> {
         // 处理右键
         _pageController.jumpToPage(readMode ? pageIndex - 1 : pageIndex - 3);
       }
+
+      Future.delayed(Duration(milliseconds: 100), () {
+        _isKeyboardEventHandling = false; // 延迟一段时间后取消标记
+      });
     }
-    return false; // 返回 false 表示事件未处理完毕，可以继续传递
+    return false;
   }
 
   @override
@@ -427,6 +435,7 @@ class __ComicReadPageState extends State<_ComicReadPage> {
       },
       itemScrollController: _itemScrollController,
       pageController: _pageController,
+      isKeyboardEventHandling: _isKeyboardEventHandling,
     ),
   );
 
