@@ -43,7 +43,6 @@ class _BottomWidgetState extends State<BottomWidget> {
   static const _animationDuration = Duration(milliseconds: 300);
   static const _bottomHeight = 100.0;
   static const _blurSigma = 10.0;
-  static const _buttonTextStyle = TextStyle(fontSize: 14);
   static const _chapterTextStyle = TextStyle(fontSize: 16);
 
   ComicReadType get _comicReadType => widget.comicReadType;
@@ -65,13 +64,8 @@ class _BottomWidgetState extends State<BottomWidget> {
 
   Widget _buildChapterButton(String text, bool isActive, VoidCallback? onTap) {
     return TextButton(
-      onPressed: onTap,
-      child: Text(
-        text,
-        style: _buttonTextStyle.copyWith(
-          color: isActive ? setting.textColor : Colors.grey,
-        ),
-      ),
+      onPressed: isActive ? onTap : null,
+      child: Text(text, style: TextStyle(fontSize: 14)),
     );
   }
 

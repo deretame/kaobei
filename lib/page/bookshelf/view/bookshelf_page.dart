@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -147,18 +149,21 @@ class _BookShelfState extends State<BookShelf> with TickerProviderStateMixin {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.refresh),
-        onPressed: () {
-          if (intSelectStore.date == 0) {
-            eventBus.fire(FavoriteEventBus(EventType.refresh));
-          } else if (intSelectStore.date == 1) {
-            eventBus.fire(HistoryEventBus(EventType.refresh));
-          } else {
-            eventBus.fire(DownloadEventBus(EventType.refresh));
-          }
-        },
-      ),
+      floatingActionButton:
+          Platform.isWindows
+              ? FloatingActionButton(
+                child: const Icon(Icons.refresh),
+                onPressed: () {
+                  if (intSelectStore.date == 0) {
+                    eventBus.fire(FavoriteEventBus(EventType.refresh));
+                  } else if (intSelectStore.date == 1) {
+                    eventBus.fire(HistoryEventBus(EventType.refresh));
+                  } else {
+                    eventBus.fire(DownloadEventBus(EventType.refresh));
+                  }
+                },
+              )
+              : null,
     );
   }
 }
