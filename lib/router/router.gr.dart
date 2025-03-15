@@ -31,61 +31,19 @@ import 'package:kaobei/page/navigation_bar.dart' as _i10;
 import 'package:kaobei/page/search_result/view/search_result.dart' as _i11;
 
 /// generated route for
-/// [_i1.BookShelf]
-class BookShelf extends _i13.PageRouteInfo<BookShelfArgs> {
-  BookShelf({
-    _i14.Key? key,
-    required _i14.ScrollController collectScrollController,
-    required _i14.ScrollController historyScrollController,
-    required _i14.ScrollController downloadScrollController,
-    List<_i13.PageRouteInfo>? children,
-  }) : super(
-         BookShelf.name,
-         args: BookShelfArgs(
-           key: key,
-           collectScrollController: collectScrollController,
-           historyScrollController: historyScrollController,
-           downloadScrollController: downloadScrollController,
-         ),
-         initialChildren: children,
-       );
+/// [_i1.BookShelfPage]
+class BookShelfRoute extends _i13.PageRouteInfo<void> {
+  const BookShelfRoute({List<_i13.PageRouteInfo>? children})
+    : super(BookShelfRoute.name, initialChildren: children);
 
-  static const String name = 'BookShelf';
+  static const String name = 'BookShelfRoute';
 
   static _i13.PageInfo page = _i13.PageInfo(
     name,
     builder: (data) {
-      final args = data.argsAs<BookShelfArgs>();
-      return _i1.BookShelf(
-        key: args.key,
-        collectScrollController: args.collectScrollController,
-        historyScrollController: args.historyScrollController,
-        downloadScrollController: args.downloadScrollController,
-      );
+      return const _i1.BookShelfPage();
     },
   );
-}
-
-class BookShelfArgs {
-  const BookShelfArgs({
-    this.key,
-    required this.collectScrollController,
-    required this.historyScrollController,
-    required this.downloadScrollController,
-  });
-
-  final _i14.Key? key;
-
-  final _i14.ScrollController collectScrollController;
-
-  final _i14.ScrollController historyScrollController;
-
-  final _i14.ScrollController downloadScrollController;
-
-  @override
-  String toString() {
-    return 'BookShelfArgs{key: $key, collectScrollController: $collectScrollController, historyScrollController: $historyScrollController, downloadScrollController: $downloadScrollController}';
-  }
 }
 
 /// generated route for

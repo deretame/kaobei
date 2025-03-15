@@ -8,7 +8,8 @@ class AppRouter extends RootStackRouter {
 
   @override
   List<AutoRoute> get routes => [
-    AutoRoute(page: NavigationBarRoute.page, initial: true),
+    // AutoRoute(page: NavigationBarRoute.page, initial: true),
+    AutoRoute(page: BookShelfRoute.page, initial: true),
     AutoRoute(page: SearchResultRoute.page),
     AutoRoute(page: ComicInfoRoute.page),
     AutoRoute(page: ChapterCommentRoute.page),

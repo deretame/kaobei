@@ -41,15 +41,7 @@ class _NavigationBarPageState extends State<NavigationBarPage> {
   void initState() {
     super.initState();
     _checkUpdate();
-    _pageList = [
-      BookShelf(
-        collectScrollController: _bookShelfCollectController,
-        historyScrollController: _bookShelfHistoryController,
-        downloadScrollController: _bookShelfDownloadController,
-      ),
-      ComicPage(),
-      MorePage(),
-    ];
+    _pageList = [BookShelfPage(), ComicPage(), MorePage()];
     eventBus.on<ToastEvent>().listen((event) {
       _showToast(event);
     });

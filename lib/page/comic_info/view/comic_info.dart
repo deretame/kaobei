@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -101,10 +102,11 @@ class _ComicInfoPageState extends State<_ComicInfoPage> {
           icon: const Icon(Icons.home),
           onPressed: () => AutoRouter.of(context).popUntilRoot(),
         ),
-        IconButton(
-          icon: const Icon(Icons.refresh),
-          onPressed: () => _onFloatingButtonPressed(),
-        ),
+        if (Platform.isWindows)
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => _onFloatingButtonPressed(),
+          ),
         Spacer(),
         if (widget.comicReadType == ComicReadType.download) _exportIcon(),
       ],
@@ -228,9 +230,7 @@ class _ComicInfoPageState extends State<_ComicInfoPage> {
     List<EpsWidget> epsWidgets = _init(state);
 
     return RefreshIndicator(
-      onRefresh: () async {
-        _onFloatingButtonPressed();
-      },
+      onRefresh: () async => _onFloatingButtonPressed(),
       child: SizedBox(
         key: ValueKey(uuid),
         child: CustomScrollView(

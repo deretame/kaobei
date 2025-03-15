@@ -119,10 +119,6 @@ class __ComicReadPageState extends State<_ComicReadPage> {
   Timer? _timer; // 定时器，定时存储阅读记录
   TapDownDetails? _tapDownDetails; // 保存点击信息
   bool havaError = true; // 记录是否有错误
-  final TransformationController _transformationController =
-      TransformationController();
-  double scale = 1.0;
-  bool _isScaling = false; // 是否正在双指缩放
 
   @override
   void initState() {
@@ -290,7 +286,7 @@ class __ComicReadPageState extends State<_ComicReadPage> {
         color: Colors.black,
         child: Stack(
           children: [
-            _readListWidget(),
+            _readList(),
             _comicReadAppBar(),
             _pageCountWidget(),
             _bottomWidget(),
@@ -301,102 +297,84 @@ class __ComicReadPageState extends State<_ComicReadPage> {
     );
   }
 
-  Widget _readListWidget() => GestureDetector(
-    onTap:
-        setting.readMode != 0
-            ? () {
-              if (_tapDownDetails != null) {
-                // 使用保存的 details 执行处理逻辑
-                _handleTap(_tapDownDetails!);
-                _tapDownDetails = null;
+  Widget _readList() => GestureDetector(
+    key: ValueKey(refresh),
+    onTap: _onTap,
+    onTapDown: (TapDownDetails details) => _tapDownDetails = details,
+    child:
+        Platform.isWindows
+            ? _readListWidget()
+            : InteractiveViewer(
+              boundaryMargin: EdgeInsets.zero,
+              minScale: 1.0,
+              maxScale: 4.0,
+              child: _readListWidget(),
+            ),
+  );
+
+  Widget _readListWidget() => Observer(
+    builder: (context) {
+      if (setting.readMode == 0) {
+        return ColumnList(
+          comicImageUrlList: comicImageUrlList,
+          comicId: comicId,
+          uuid: uuid,
+          itemScrollController: _itemScrollController,
+          itemPositionsListener: _itemPositionsListener,
+        );
+      } else {
+        return Listener(
+          onPointerSignal: (PointerSignalEvent event) {
+            if (event is PointerScrollEvent) {
+              // 处理滚轮事件
+              final readMode = setting.readMode == 1 ? true : false;
+              if (event.scrollDelta.dy > 0) {
+                // 处理向上滚动
+                _pageController.jumpToPage(
+                  readMode ? pageIndex - 1 : pageIndex - 3,
+                );
+              } else if (event.scrollDelta.dy < 0) {
+                // 处理向下滚动
+                _pageController.jumpToPage(
+                  readMode ? pageIndex - 3 : pageIndex - 1,
+                );
               }
             }
-            : _toggleVisibility,
-    onTapDown: (TapDownDetails details) => _tapDownDetails = details,
-    child: InteractiveViewer(
-      key: ValueKey(refresh),
-      transformationController: _transformationController,
-      boundaryMargin: EdgeInsets.zero,
-      minScale: 1.0,
-      maxScale: 4.0,
-      onInteractionStart: (details) {
-        // 检测是否为双指手势
-        if (details.pointerCount == 2) {
-          setState(() {
-            _isScaling = true; // 启用缩放
-          });
-        }
-      },
-      onInteractionEnd: (details) {
-        // 手势结束时，重置缩放状态
-        setState(() {
-          _isScaling = false;
-        });
-      },
-      onInteractionUpdate: (details) {
-        if (_isScaling) {
-          // 仅在双指缩放时更新缩放比例
-          setState(() {
-            scale = _transformationController.value.getMaxScaleOnAxis();
-          });
-        } else {
-          // 非双指手势时，重置缩放比例
-          _transformationController.value = Matrix4.identity();
-        }
-      },
-      child: Observer(
-        builder: (context) {
-          if (setting.readMode == 0) {
-            return ColumnList(
-              comicImageUrlList: comicImageUrlList,
-              comicId: comicId,
-              uuid: uuid,
-              itemScrollController: _itemScrollController,
-              itemPositionsListener: _itemPositionsListener,
-            );
-          } else {
-            return Listener(
-              onPointerSignal: (PointerSignalEvent event) {
-                if (event is PointerScrollEvent) {
-                  // 处理滚轮事件
-                  final readMode = setting.readMode == 1 ? true : false;
-                  if (event.scrollDelta.dy > 0) {
-                    // 处理向上滚动
-                    _pageController.jumpToPage(
-                      readMode ? pageIndex - 1 : pageIndex - 3,
-                    );
-                  } else if (event.scrollDelta.dy < 0) {
-                    // 处理向下滚动
-                    _pageController.jumpToPage(
-                      readMode ? pageIndex - 3 : pageIndex - 1,
-                    );
-                  }
+          },
+          child: RowModeWidget(
+            comicImageUrlList: comicImageUrlList,
+            comicId: comicId,
+            uuid: uuid,
+            pageController: _pageController,
+            onPageChanged: (int index) {
+              setState(() {
+                pageIndex = index + 2;
+                // logger.d('当前页数：${pageIndex - 1}');
+                if (!_isComicRolling) {
+                  _currentSliderValue =
+                      (pageIndex).clamp(0, _totalSlots - 1).toDouble() - 1;
+                  _isVisible = false;
                 }
-              },
-              child: RowModeWidget(
-                comicImageUrlList: comicImageUrlList,
-                comicId: comicId,
-                uuid: uuid,
-                pageController: _pageController,
-                onPageChanged: (int index) {
-                  setState(() {
-                    pageIndex = index + 2;
-                    // logger.d('当前页数：${pageIndex - 1}');
-                    if (!_isComicRolling) {
-                      _currentSliderValue =
-                          (pageIndex).clamp(0, _totalSlots - 1).toDouble() - 1;
-                      _isVisible = false;
-                    }
-                  });
-                },
-                isSliderRolling: _isSliderRolling,
-              ),
-            );
-          }
-        },
-      ),
-    ),
+              });
+            },
+            isSliderRolling: _isSliderRolling,
+          ),
+        );
+      }
+    },
   );
+
+  void _onTap() {
+    setting.readMode != 0
+        ? () {
+          if (_tapDownDetails != null) {
+            // 使用保存的 details 执行处理逻辑
+            _handleTap(_tapDownDetails!);
+            _tapDownDetails = null;
+          }
+        }
+        : _toggleVisibility();
+  }
 
   Widget _comicReadAppBar() => ComicReadAppBar(
     title: title,

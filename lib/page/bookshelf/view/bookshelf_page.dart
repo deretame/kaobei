@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:kaobei/main.dart';
 import 'package:kaobei/page/bookshelf/bookshelf.dart';
@@ -11,31 +12,20 @@ import '../../../mobx/string_store.dart';
 import '../../../router/router.gr.dart';
 
 @RoutePage()
-class BookShelf extends StatefulWidget {
-  final ScrollController collectScrollController;
-  final ScrollController historyScrollController;
-  final ScrollController downloadScrollController;
-
-  const BookShelf({
-    super.key,
-    required this.collectScrollController,
-    required this.historyScrollController,
-    required this.downloadScrollController,
-  });
+class BookShelfPage extends StatefulWidget {
+  const BookShelfPage({super.key});
 
   @override
-  State<BookShelf> createState() => _BookShelfState();
+  State<BookShelfPage> createState() => _BookShelfPageState();
 }
 
-class _BookShelfState extends State<BookShelf> with TickerProviderStateMixin {
-  ScrollController get collectScrollController =>
-      widget.collectScrollController;
+class _BookShelfPageState extends State<BookShelfPage>
+    with TickerProviderStateMixin {
+  late ScrollController collectScrollController;
 
-  ScrollController get historyScrollController =>
-      widget.historyScrollController;
+  late ScrollController historyScrollController;
 
-  ScrollController get downloadScrollController =>
-      widget.downloadScrollController;
+  late ScrollController downloadScrollController;
 
   late final TabController _tabController;
   final StringStore stringSelectStore = StringStore();
@@ -49,6 +39,9 @@ class _BookShelfState extends State<BookShelf> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    collectScrollController = ScrollController();
+    historyScrollController = ScrollController();
+    downloadScrollController = ScrollController();
     _tabController = TabController(length: 3, vsync: this)..addListener(() {
       if (_tabController.index != _currentIndex) {
         _currentIndex = _tabController.index;
@@ -62,6 +55,16 @@ class _BookShelfState extends State<BookShelf> with TickerProviderStateMixin {
         }
       }
     });
+    // 监听全局键盘事件
+    HardwareKeyboard.instance.addHandler(_handleKeyEvent);
+  }
+
+  bool _handleKeyEvent(KeyEvent event) {
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.escape) {
+      AutoRouter.of(context).maybePop();
+    }
+    return false;
   }
 
   @override

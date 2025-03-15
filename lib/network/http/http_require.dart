@@ -6,29 +6,29 @@ enum Ordering { datetimeUpdated, minusDatetimeUpdated, popular, minusPopular }
 
 enum QType { none, name, author, local, theme }
 
+const headers = {
+  "user-agent": "COPY/2.2.6",
+  "source": "copyApp",
+  // "deviceinfo": "ALN-AL1-Allen",
+  "webp": "1",
+  "accept-encoding": "gzip",
+  "authorization": "Token",
+  "platform": "3",
+  "referer": "com.copymanga.app-2.2.6",
+  "accept": "application/json",
+  "version": "2.2.6",
+  "region": "1",
+  // "device": "V417IR",
+  "host": "api.mangacopy.com",
+  // "umstring": "b4c89ca4104ea9a97750314d791520ac" // 魔法字符串
+};
+
 Future<Map<String, dynamic>> search({
   String q = "",
   int offset = 0,
   QType qType = QType.none,
   SearchType searchType = SearchType.comic,
 }) async {
-  var headers = {
-    "user-agent": "COPY/2.2.5",
-    "source": "copyApp",
-    // "deviceinfo": "ALN-AL1-Allen",
-    "webp": "1",
-    "accept-encoding": "gzip",
-    "authorization": "Token",
-    "platform": "3",
-    "referer": "com.copymanga.app-2.2.5",
-    "accept": "application/json",
-    "version": "2.2.5",
-    "region": "1",
-    // "device": "V417IR",
-    "host": "api.mangacopy.com",
-    // "umstring": "b4c89ca4104ea9a97750314d791520ac" // 魔法字符串
-  };
-
   var params = {
     "limit": 18,
     "offset": offset,
@@ -48,23 +48,6 @@ Future<Map<String, dynamic>> search({
 }
 
 Future<Map<String, dynamic>> getComicInfo(String comicId) async {
-  var headers = {
-    "user-agent": "COPY/2.2.5",
-    "source": "copyApp",
-    // "deviceinfo": "ALN-AL1-Allen",
-    "webp": "1",
-    "accept-encoding": "gzip",
-    "authorization": "Token",
-    "platform": "3",
-    "referer": "com.copymanga.app-2.2.5",
-    "accept": "application/json",
-    "version": "2.2.5",
-    "region": "1",
-    // "device": "V417IR",
-    "host": "api.mangacopy.com",
-    // "umstring": "b4c89ca4104ea9a97750314d791520ac" // 魔法字符串
-  };
-
   final url = "https://api.mangacopy.com/api/v3/comic2/$comicId";
 
   var params = {"in_mainland": true, "platform": 3};
@@ -83,23 +66,6 @@ Future<Map<String, dynamic>> getComicEps({
   String group = 'default',
   int offset = 0,
 }) async {
-  var headers = {
-    "user-agent": "COPY/2.2.5",
-    "source": "copyApp",
-    // "deviceinfo": "ALN-AL1-Allen",
-    "webp": "1",
-    "accept-encoding": "gzip",
-    "authorization": "Token",
-    "platform": "3",
-    "referer": "com.copymanga.app-2.2.5",
-    "accept": "application/json",
-    "version": "2.2.5",
-    "region": "1",
-    // "device": "V417IR",
-    "host": "api.mangacopy.com",
-    // "umstring": "b4c89ca4104ea9a97750314d791520ac" // 魔法字符串
-  };
-
   final url =
       "https://api.mangacopy.com/api/v3/comic/$comicId/group/$group/chapters";
 
@@ -181,23 +147,6 @@ Future<Map<String, dynamic>> getEpsInfo({
   final url =
       "https://api.mangacopy.com/api/v3/comic/$comicId/chapter2/$chapterId";
 
-  var headers = {
-    "user-agent": "COPY/2.2.5",
-    "source": "copyApp",
-    // "deviceinfo": "ALN-AL1-Allen",
-    "webp": "1",
-    "accept-encoding": "gzip",
-    "authorization": "Token",
-    "platform": "3",
-    "referer": "com.copymanga.app-2.2.5",
-    "accept": "application/json",
-    "version": "2.2.5",
-    "region": "1",
-    // "device": "V417IR",
-    "host": "api.mangacopy.com",
-    // "umstring": "b4c89ca4104ea9a97750314d791520ac" // 魔法字符串
-  };
-
   var params = {"in_mainland": true, "platform": 3};
 
   return await httpBuild(
@@ -216,23 +165,6 @@ Future<Map<String, dynamic>> comicTagAuthorSearch({
   Ordering ordering = Ordering.datetimeUpdated,
 }) async {
   final url = "https://api.mangacopy.com/api/v3/comics";
-
-  var headers = {
-    "user-agent": "COPY/2.2.5",
-    "source": "copyApp",
-    // "deviceinfo": "ALN-AL1-Allen",
-    "webp": "1",
-    "accept-encoding": "gzip",
-    "authorization": "Token",
-    "platform": "3",
-    "referer": "com.copymanga.app-2.2.5",
-    "accept": "application/json",
-    "version": "2.2.5",
-    "region": "1",
-    // "device": "V417IR",
-    "host": "api.mangacopy.com",
-    // "umstring": "b4c89ca4104ea9a97750314d791520ac" // 魔法字符串
-  };
 
   String orderingStr = "";
   switch (ordering) {
@@ -274,23 +206,6 @@ Future<Map<String, dynamic>> getChapterComments({
 }) async {
   final url = "https://api.mangacopy.com/api/v3/roasts";
 
-  var headers = {
-    "user-agent": "COPY/2.2.5",
-    "source": "copyApp",
-    // "deviceinfo": "ALN-AL1-Allen",
-    "webp": "1",
-    "accept-encoding": "gzip",
-    "authorization": "Token",
-    "platform": "3",
-    "referer": "com.copymanga.app-2.2.5",
-    "accept": "application/json",
-    "version": "2.2.5",
-    "region": "1",
-    // "device": "V417IR",
-    "host": "api.mangacopy.com",
-    // "umstring": "b4c89ca4104ea9a97750314d791520ac" // 魔法字符串
-  };
-
   var params = {
     "chapter_id": chapterId,
     "limit": 10,
@@ -313,23 +228,6 @@ Future<Map<String, dynamic>> getComicComments({
   int offset = 0,
 }) async {
   final url = "https://api.mangacopy.com/api/v3/comments";
-
-  var headers = {
-    "user-agent": "COPY/2.2.5",
-    "source": "copyApp",
-    // "deviceinfo": "ALN-AL1-Allen",
-    "webp": "1",
-    "accept-encoding": "gzip",
-    "authorization": "Token",
-    "platform": "3",
-    "referer": "com.copymanga.app-2.2.5",
-    "accept": "application/json",
-    "version": "2.2.5",
-    "region": "1",
-    // "device": "V417IR",
-    "host": "api.mangacopy.com",
-    // "umstring": "b4c89ca4104ea9a97750314d791520ac" // 魔法字符串
-  };
 
   var params = {
     "comic_id": comicId,
