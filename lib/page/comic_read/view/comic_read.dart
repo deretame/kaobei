@@ -365,15 +365,14 @@ class __ComicReadPageState extends State<_ComicReadPage> {
   );
 
   void _onTap() {
-    setting.readMode != 0
-        ? () {
-          if (_tapDownDetails != null) {
-            // 使用保存的 details 执行处理逻辑
-            _handleTap(_tapDownDetails!);
-            _tapDownDetails = null;
-          }
-        }
-        : _toggleVisibility();
+    if (setting.readMode != 0) {
+      if (_tapDownDetails != null) {
+        _handleTap(_tapDownDetails!);
+        _tapDownDetails = null;
+      }
+    } else {
+      _toggleVisibility();
+    }
   }
 
   Widget _comicReadAppBar() => ComicReadAppBar(
